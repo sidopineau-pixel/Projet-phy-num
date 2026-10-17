@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 PARAMETRES
 """
 
-N=100 # nombre de particules
+N=3 # nombre de particules
 R=1 # diamètre particule (unité naturelle)
 epsilon = 1 # énergie (unité naturelle)
 kb = 1 # constante de Boltzmann (unité naturelle)
@@ -17,10 +17,10 @@ m=1 # masse des particules (unité naturelle)
 
 
 """
-CONDITIONS AUX LIMITES : bords fixes (2 possibilités : périodique ou réflexion sur la surface)
+BOITE 2D : bords fixes (2 possibilités de conditions aux limites : périodique ou réflexion sur la surface)
 """
 
-# 2D : boite de 100 par 100
+# 2D : boite de 10 par 10
 
 x_min=0
 x_max=10
@@ -140,8 +140,8 @@ def calcul_positions_vitesses_accelerations(Nb_iterations,r_init,V_init,a_init):
         champ_accel=np.column_stack((accel_x, accel_y)) # champs d'accélération calculé en tout point 
 
         # calcul de l'accélération des particules : si une particule est présente en un point (x,y) de l'espace alors on ajoute l'accélération calculée au point(x,y) au vecteur a_new / problème : on ne peut pas faire de nouveau une boucle sur chaque point de l'espace car cela augmente encore la complexité
-        j_indice = np.round(r_new[:, 0] / dx).astype(int) # x=j*dx donc j=x/dx avec j indice de colonne de la matrice du champ des accélérations / on arrondit au plus proche et convertit en int
-        i_indice = np.round(r_new[:, 1] / dy).astype(int) # y=i*dy donc i=y/dy avec i indice de ligne de la matrice du champ des accélérations
+        j_indice = np.round(r_new[:, 0] / dx).astype(int)% accel_x.shape[1] # x=j*dx donc j=x/dx avec j indice de colonne de la matrice du champ des accélérations / on arrondit au plus proche et convertit en int / si l'indice le plus proche correspond au dernier et sort du tableau : CL périodique : revient de l'autre côté
+        i_indice = np.round(r_new[:, 1] / dy).astype(int)% accel_x.shape[0] # y=i*dy donc i=y/dy avec i indice de ligne de la matrice du champ des accélérations
         ax_new=accel_x[i_indice,j_indice]
         ay_new=accel_y[i_indice,j_indice]
         a_new=np.column_stack((ax_new,ay_new))
@@ -293,11 +293,12 @@ def gradient_2d(f,dx,dy): # cf TP1
 # plt.show()
 
 """
-TESTS DYNAMIQUE DU SYSTEME A 2D
+SAUVEGARDE DES DONNES DE POSITION, VITESSE, ACCELERATION
 """
 
-# à faire : mon fichier ne peut pas être converti au format txt (le but est de pouvoir save les données caclulées puis de pouvoir les analyser dans un autre 
-# programme pourpas que ça fasse trop lourds)
 
-# test_dynamique_syst_2D=calcul_positions_vitesses_accelerations(Nb_iterations,r_init,V_init,a_init)
-# np.savetxt("test_dynamique_syst_2D.txt",test_dynamique_syst_2D, delimiter=",",header="Temps,X,Y,Vx,Vy,Ax,Ay")
+test_dynamique_syst_2D=calcul_positions_vitesses_accelerations(Nb_iterations,r_init,V_init,a_init)
+#print(test_dynamique_syst_2D)
+test_dynamique_syst_2D = test_dynamique_syst_2D.reshape(-1, 7) # afin de pouvoir convertir le fichier de données au format txt je change le format du tableau : on aura sept colonnes comprennant : temps, x, y, V_x, V_y, a_x, a_y (le -1 indique que python calcule automatiquement le nombre de lignes necessaires)
+
+np.savetxt("test_dynamique_syst_2D.txt",test_dynamique_syst_2D, delimiter=",",header="Temps,X,Y,Vx,Vy,Ax,Ay")
