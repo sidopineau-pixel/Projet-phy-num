@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 PARAMETRES
 """
 
-N=3 # nombre de particules
+N=15 # nombre de particules
 R=1 # diamètre particule (unité naturelle)
 epsilon = 1 # énergie (unité naturelle)
 kb = 1 # constante de Boltzmann (unité naturelle)
@@ -39,7 +39,7 @@ EXTRACTION DES DONNES (POSITIONS VITESSES ACCELERATIONS)
 """
 
 # lecture des données et mise en forme 
-data=np.loadtxt("test_dynamique_syst_2D.txt",skiprows=1, delimiter=",", dtype=float)
+data=np.loadtxt("calcul_r_v_a_analytique.txt",skiprows=1, delimiter=",", dtype=float)
 data_array = data.reshape(Nb_iterations + 1, N, 7) # même forme de tableau que celui issu de la fonction calcul_positions_vitesses_accelerations : pour chaque temps et pour chaque particule : [temps, X, Y, Vx, Vy, Ax, Ay]
 
 #print(data_array)

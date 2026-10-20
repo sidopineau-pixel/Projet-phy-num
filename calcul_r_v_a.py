@@ -1,5 +1,5 @@
 """
-CODE POUR LE CALCUL DES POSITIONS VITESSES ET ACCELERATIONS
+CODE POUR LE CALCUL DES POSITIONS VITESSES ET ACCELERATIONS :version espace discrétisé / avec des champs
 """
 
 
@@ -96,16 +96,6 @@ def Lennard_Jones(r):
     u=4*epsilon*((R/r)**12 - (R/r)**6)
     return u
 
-# r_Lennard_Jones=np.arange(0,50,0.01)
-
-# plt.figure()
-# plt.plot(r_Lennard_Jones,Lennard_Jones(r_Lennard_Jones))
-# plt.xlabel("r")
-# plt.ylabel("u(r)")
-# plt.xlim(0,10)
-# plt.ylim(-1.2,1)
-# plt.title("Potentiel de Lennard-Jones")
-# plt.show()
 
 """
 ALGORITHME DE VERLET POUR LE CALCUL DES VITESSES
