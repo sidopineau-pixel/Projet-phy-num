@@ -56,18 +56,47 @@ def Lennard_Jones(r1,r2): # r1,r2 = vecteurs positions des particules 1 et 2
 GRADIENT DE L'ENERGIE POTENTIELLE (f=-grad(u)) (calcul analytique) avec conditions aux limites périodiques
 """
 
-def gradient_u(r1,r2): # gradient de l'énergie potentielle / r1, r2= vecteurs position
-    x1=r1[0]
-    y1=r1[1]
-    x2=r2[0]
-    y2=r2[1]
-    norm_r=np.sqrt((x2-x1)**2+(y2-y1)**2)
-    norm_grad = 4*epsilon*(-12*(R**12)/(norm_r**13)+6*(R**6)/(norm_r**7)) # dérivée par rapport à r du potentiel de Lennard-Jones
-    grad_x = norm_grad*(x2-x1)/norm_r
-    grad_y= norm_grad*(y2-y1)/norm_r
-    return np.array([grad_x, grad_y])
+# def gradient_u(r1,r2): # gradient de l'énergie potentielle / r1, r2= vecteurs position / ne tient pas compte des conditions périodiques
+#     x1=r1[0]
+#     y1=r1[1]
+#     x2=r2[0]
+#     y2=r2[1]
+#     norm_r=np.sqrt((x2-x1)**2+(y2-y1)**2)
+#     norm_grad = 4*epsilon*(-12*(R**12)/(norm_r**13)+6*(R**6)/(norm_r**7)) # dérivée par rapport à r du potentiel de Lennard-Jones
+#     grad_x = norm_grad*(x2-x1)/norm_r
+#     grad_y= norm_grad*(y2-y1)/norm_r
+#     return np.array([grad_x, grad_y])
 
-def gradient_u_CL_périodiques(r1,r2):
+# def gradient_u_CL_périodiques(r1,r2): # problème : en prennant la valeur absolue on perd le signe du vecteur
+
+#     # positions réelles dans la boite
+
+#     x1=r1[0]
+#     y1=r1[1]
+#     x2=r2[0]
+#     y2=r2[1]
+    
+#     delta_x=x1-x2
+#     delta_y=y1-y2
+
+#     # positions en tenant compte des CL périodiques
+
+#     distances_possibles_x=np.array(np.abs([delta_x -Lx, delta_x, delta_x +Lx])) # on ne considère que les boites directement adjacentes à notre boite
+#     distances_possibles_y=np.array(np.abs([delta_y -Ly, delta_y, delta_y +Ly]))
+#     d_x_périodique=np.min(distances_possibles_x, axis=0) # distance selon x périodique (voir brouillon pour le calcul)
+#     d_y_periodique=np.min(distances_possibles_y,axis=0) # distance selon y périodique
+
+#     # calcul du gradient avec CL périodiques
+
+#     norm_r=np.sqrt(d_x_périodique**2+d_y_periodique**2)
+#     norm_grad = 4*epsilon*(-12*(R**12)/(norm_r**13)+6*(R**6)/(norm_r**7)) # dérivée par rapport à r du potentiel de Lennard-Jones
+#     grad_x = norm_grad*d_x_périodique/norm_r
+#     grad_y= norm_grad*d_y_periodique/norm_r
+
+#     return np.array([grad_x, grad_y])
+
+
+def gradient_u_CL_périodiques(r1, r2):
 
     # positions réelles dans la boite
 
@@ -79,18 +108,26 @@ def gradient_u_CL_périodiques(r1,r2):
     delta_x=x1-x2
     delta_y=y1-y2
 
-    # positions en tenant compte des CL périodiques
+    # distances possibles en tenant compte des CL périodiques
+    distances_possibles_x = np.abs([delta_x - Lx, delta_x, delta_x + Lx])
+    distances_possibles_y = np.abs([delta_y - Ly, delta_y, delta_y + Ly])
 
-    distances_possibles_x=np.array(np.abs([delta_x -Lx, delta_x, delta_x +Lx])) # on ne considère que les boites directement adjacentes à notre boite
-    distances_possibles_y=np.array(np.abs([delta_y -Ly, delta_y, delta_y +Ly]))
-    d_x_périodique=np.min(distances_possibles_x, axis=0) # distance selon x périodique (voir brouillon pour le calcul)
-    d_y_periodique=np.min(distances_possibles_y,axis=0) # distance selon y périodique
+    # indices des distances min
+    indice_x = np.argmin(distances_possibles_x)
+    indice_y = np.argmin(distances_possibles_y)
 
-    # calcul du gradient avec CL périodiques
+    # distances en tenant compte du signe
+    distance_x_signe = np.array([delta_x - Lx, delta_x, delta_x + Lx])
+    distance_y_signe = np.array([delta_y - Ly, delta_y, delta_y + Ly])
 
-    norm_r=np.sqrt(d_x_périodique**2+d_y_periodique**2)
+    # distances périodiques
+    d_x_periodique = distance_x_signe[indice_x]
+    d_y_periodique = distance_y_signe[indice_y]
+
+    # calcul du gradient en tenant compte des CL périodiques
+    norm_r=np.sqrt(d_x_periodique**2+d_y_periodique**2)
     norm_grad = 4*epsilon*(-12*(R**12)/(norm_r**13)+6*(R**6)/(norm_r**7)) # dérivée par rapport à r du potentiel de Lennard-Jones
-    grad_x = norm_grad*d_x_périodique/norm_r
+    grad_x = norm_grad*d_x_periodique/norm_r
     grad_y= norm_grad*d_y_periodique/norm_r
 
     return np.array([grad_x, grad_y])

@@ -59,6 +59,7 @@ PLOT DE LA TRAJECTOIRE DES PARTICULES AU COURS DU TEMPS
 plt.figure()
 for j in range(N): # tracé de la trajectoire pour chaque particule (boucle sur les particules)
     plt.plot(r[:, j, 0], r[:, j, 1],'o' ,linestyle=':',label=f'Particule {j}')
+    #plt.plot(r[:, j, 0], r[:, j, 1],'o',label=f'Particule {j}')
     plt.scatter(r[0,j,0],r[0,j,1],color='black',s=150,label="positions initiales" if j==N-1 else None) # ajout d'un point noir pour indiquer la position initiale
 plt.xlabel('X')
 plt.ylabel('Y')
