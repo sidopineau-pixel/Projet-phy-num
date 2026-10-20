@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 PARAMETRES
 """
 
-N=15 # nombre de particules
+N=10 # nombre de particules
 R=1 # diamètre particule (unité naturelle)
 epsilon = 1 # énergie (unité naturelle)
 kb = 1 # constante de Boltzmann (unité naturelle)
@@ -22,7 +22,7 @@ m=1 # masse des particules (unité naturelle)
 
 # temps :
 dt=0.01 # intervalle de temps (unités naturelles)
-Nb_iterations=10 # nombre d'itérations dans le calcul de positions, vitesses, accélérations
+Nb_iterations=200 # nombre d'itérations dans le calcul de positions, vitesses, accélérations
 
 """
 BOITE 2D : bords fixes (2 possibilités de conditions aux limites : périodique ou réflexion sur la surface)
@@ -39,65 +39,6 @@ Ly=y_max - y_min
 dx=0.01
 dy=0.01
 
-"""
-CONDITIONS INITIALES
-"""
-
-def distribution_uniforme_positions(N): # on veut tirer la position initiale des N particules selon une probabilité uniforme
-    x=np.random.uniform(x_min,x_max,size=N)
-    y=np.random.uniform(y_min,y_max,size=N)
-    r=np.column_stack((x, y))
-    return r
-
-T_init=300 # température initiale (en K)
-
-def distribution_gaussienne_vitesses(N):
-    # mu_init=np.sqrt(3*kb*T_init/m) # correspond à la vitesse quadratique moyenne (d'après la thermo, permet d'avoir un ordre d'idée)
-    mu_init=0 # vitesse moyenne nulle
-    sigma_init=1 # à réfléchir
-    Vx=np.random.normal(mu_init,sigma_init,size=N)
-    Vy=np.random.normal(mu_init,sigma_init,size=N)
-    V=np.column_stack((Vx,Vy))
-    return V
-
-r_init = distribution_uniforme_positions(N) # positions initiales
-V_init = distribution_gaussienne_vitesses(N) # vitesses initiales
-a_init = np.zeros_like(r_init) # accélérations initiales (je ne sais pas)
-
-# # plot des positions initiales dans la boite
-# x_init=r_init[:,0]
-# y_init=r_init[:,1]
-
-# plt.figure()
-# plt.scatter(x_init,y_init,color='red',s=50)
-# plt.xlabel("x")
-# plt.ylabel("y")
-# plt.xlim(x_min,x_max)
-# plt.ylim(y_min,y_max)
-# plt.axis('scaled')
-# plt.title("positions initiales")
-# plt.savefig("positions_initiales_100_particules.png")
-# plt.show()
-
-# # histogramme des vitesses initiales
-# Vx_init=V_init[:,0]
-# Vy_init=V_init[:,1]
-# V_init_norm=np.sqrt(Vx_init**2+Vy_init**2)
-
-# plt.figure()
-# plt.hist(V_init_norm,bins=15)
-# plt.title("Distribution de la norme des vitesses initiales")
-# plt.show()
-
-# plt.figure()
-# plt.hist(Vx_init,bins=15)
-# plt.title("Distribution des vitesses initiales selon x")
-# plt.show()
-
-# plt.figure()
-# plt.hist(Vy_init,bins=15)
-# plt.title("Distribution des vitesses initiales selon y")
-# plt.show()
 
 """
 POTENTIEL DE LENNARD-JONES
@@ -215,6 +156,75 @@ def calcul_positions_vitesses_accelerations(Nb_iterations,r_init,V_init,a_init):
         a=a_new
 
     return data
+
+
+"""
+CONDITIONS INITIALES
+"""
+
+def distribution_uniforme_positions(N): # on veut tirer la position initiale des N particules selon une probabilité uniforme
+    x=np.random.uniform(x_min,x_max,size=N)
+    y=np.random.uniform(y_min,y_max,size=N)
+    r=np.column_stack((x, y))
+    return r
+
+T_init=300 # température initiale (en K)
+
+def distribution_gaussienne_vitesses(N):
+    # mu_init=np.sqrt(3*kb*T_init/m) # correspond à la vitesse quadratique moyenne (d'après la thermo, permet d'avoir un ordre d'idée)
+    mu_init=0 # vitesse moyenne nulle
+    sigma_init=1 # à réfléchir
+    Vx=np.random.normal(mu_init,sigma_init,size=N)
+    Vy=np.random.normal(mu_init,sigma_init,size=N)
+    V=np.column_stack((Vx,Vy))
+    return V
+
+def distribution_uniforme_vitesses(N,Vmin,Vmax):
+    Vx=np.random.uniform(Vmin,Vmax,size=N)
+    Vy=np.random.uniform(Vmin,Vmax,size=N)
+    V=np.column_stack((Vx, Vy))
+    return V
+
+r_init = distribution_uniforme_positions(N) # positions initiales
+#V_init = distribution_gaussienne_vitesses(N) # vitesses initiales
+V_init = distribution_uniforme_vitesses(N,-5,5) 
+a_init=(-1/m)*somme_des_gradients(r_init) # accélération initiale
+#a_init = np.zeros_like(r_init) # accélérations initiales (je ne sais pas)
+
+# # plot des positions initiales dans la boite
+# x_init=r_init[:,0]
+# y_init=r_init[:,1]
+
+# plt.figure()
+# plt.scatter(x_init,y_init,color='red',s=50)
+# plt.xlabel("x")
+# plt.ylabel("y")
+# plt.xlim(x_min,x_max)
+# plt.ylim(y_min,y_max)
+# plt.axis('scaled')
+# plt.title("positions initiales")
+# plt.savefig("positions_initiales_100_particules.png")
+# plt.show()
+
+# # histogramme des vitesses initiales
+# Vx_init=V_init[:,0]
+# Vy_init=V_init[:,1]
+# V_init_norm=np.sqrt(Vx_init**2+Vy_init**2)
+
+# plt.figure()
+# plt.hist(V_init_norm,bins=15)
+# plt.title("Distribution de la norme des vitesses initiales")
+# plt.show()
+
+# plt.figure()
+# plt.hist(Vx_init,bins=15)
+# plt.title("Distribution des vitesses initiales selon x")
+# plt.show()
+
+# plt.figure()
+# plt.hist(Vy_init,bins=15)
+# plt.title("Distribution des vitesses initiales selon y")
+# plt.show()
 
 
 """
