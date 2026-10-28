@@ -9,14 +9,15 @@ import matplotlib.pyplot as plt
 PARAMETRES
 """
 
-N=10 # nombre de particules
+N=100 # nombre de particules
 R=1 # diamètre particule (unité naturelle)
 epsilon = 1 # énergie (unité naturelle)
 kb = 1 # constante de Boltzmann (unité naturelle)
 m=1 # masse des particules (unité naturelle)
+dt=0.00001 # intervalle de temps (unités naturelles)
+Nb_iterations=1000
 
-dt=0.01 # intervalle de temps (unités naturelles)
-Nb_iterations=200
+r_lim=10000 # portée maximale de l'interraction (à ajuster)
 
 
 """
@@ -26,13 +27,18 @@ BOITE 2D : bords fixes (2 possibilités de conditions aux limites : périodique 
 # 2D : boite de 10 par 10
 
 x_min=0
-x_max=10
+x_max=44
 y_min=0
-y_max=10
+y_max=44
 Lx=x_max - x_min
 Ly=y_max - y_min
 dx=0.01
 dy=0.01
+
+d=2 # dimension de la simulation (ici : 2D)
+
+A=Lx*Ly
+rho=N/A # densité de particules
 
 """
 EXTRACTION DES DONNES (POSITIONS VITESSES ACCELERATIONS)
@@ -56,20 +62,21 @@ a=data_array[:,:,5:7]
 PLOT DE LA TRAJECTOIRE DES PARTICULES AU COURS DU TEMPS
 """
 
-plt.figure()
-for j in range(N): # tracé de la trajectoire pour chaque particule (boucle sur les particules)
-    plt.plot(r[:, j, 0], r[:, j, 1],'o' ,linestyle=':',label=f'Particule {j}')
-    #plt.plot(r[:, j, 0], r[:, j, 1],'o',label=f'Particule {j}')
-    plt.scatter(r[0,j,0],r[0,j,1],color='black',s=150,label="positions initiales" if j==N-1 else None) # ajout d'un point noir pour indiquer la position initiale
-plt.xlabel('X')
-plt.ylabel('Y')
-plt.title('Trajectoires des particules')
-plt.legend()
-plt.grid()
-plt.xlim(x_min,x_max)
-plt.ylim(y_min,y_max)
-plt.savefig("trajectoires particules.png")
-plt.show()
+# plt.figure()
+# for j in range(N): # tracé de la trajectoire pour chaque particule (boucle sur les particules)
+#     plt.plot(r[:, j, 0], r[:, j, 1],'o' ,linestyle=':',label=f'Particule {j}')
+#     #plt.plot(r[:, j, 0], r[:, j, 1],'o',label=f'Particule {j}')
+#     plt.scatter(r[0,j,0],r[0,j,1],color='black',s=150,label="positions initiales" if j==N-1 else None) # ajout d'un point noir pour indiquer la position initiale
+# plt.xlabel('X')
+# plt.ylabel('Y')
+# plt.title('Trajectoires des particules')
+# plt.legend()
+# plt.grid()
+# plt.xlim(x_min,x_max)
+# plt.ylim(y_min,y_max)
+# plt.savefig("trajectoires particules.png")
+# plt.show()
+
 
 """
 CALCUL DE L'ENERGIE DU SYSTEME
@@ -92,8 +99,6 @@ def energie_cinetique_totale():
 def Lennard_Jones(r):
     u=4*epsilon*((R/r)**12 - (R/r)**6)
     return u
-
-r_lim=100 # portée maximale de l'interraction (à ajuster)
 
 def energie_potentielle_par_particule(r): # r correspond au n-uplet contenant toutes les positions des particules / on tient compte des CL périodiques
     U_tot=np.zeros((N,N)) # initialisation de la matrice d'interraction
@@ -125,14 +130,127 @@ def energie_potentielle_totale(r):
 def energie_totale(r):
     return energie_cinetique_totale() + energie_potentielle_totale(r) # return un tableau de longueur Nb_iterations correspondant à l'énergie totale au temps t
 
+# calcul des énergies
 energie=energie_totale(r)
+Ec = energie_cinetique_totale()
+Ep = energie_potentielle_totale(r)
 
-#print("energie=",energie)
+# # plot log de l'énergie totale
+# plt.figure()
+# plt.plot(time[:-1], np.log(energie))
+# plt.title("log de l'énergie totale du système en fonction du temps")
+# plt.xlabel("temps")
+# plt.ylabel("log(E)")
+# plt.grid()
+# plt.savefig("log_energie_au_cours_du_temps.png")
+# plt.show()
+
+
+# plot des énergies
+plt.figure()
+plt.plot(time[:len(Ec)],Ec,label="énergie cinétique")
+plt.plot(time[:len(Ep)],Ep,label="énergie potentielle")
+plt.plot(time[:len(energie)],energie, label="energie totale")
+plt.xlabel("temps")
+plt.ylabel("energie")
+plt.legend()
+plt.grid()
+plt.savefig("energie_au_cours_du_temps.png")
+plt.show()
+
+# sauvegarde des énergies
+data_Ec=np.column_stack((time[:len(Ec)],Ec))
+data_Ep=np.column_stack((time[:len(Ep)],Ep))
+data_E=np.column_stack((time[:len(energie)],energie))
+
+np.savetxt("Energie_cinetique.txt",data_Ec,delimiter=",",header="Temps,Ec")
+np.savetxt("Energie_potentielle.txt",data_Ep,delimiter=",",header="Temps,Ep")
+np.savetxt("Energie_totale.txt",data_E,delimiter=",",header="Temps,E")
+
+"""
+DETERMINATION DE L'EQUILIBRE DU SYSTEME
+"""
+
+def equilibre(Ec,critere_Ec,critere_fenetre): 
+    # un système est à l'équilibre lorsque ses grandeurs macroscopiques ne dépendent plus du temps, or V,N sont fixés, on veut voir quand T devient constante
+    # T est définie à l'équilibre via l'énergie cinétique moyenne via le théorème d'équipartition de l'énergie, on veut voir quand ets-ce que Ec et constante
+    fenetre=int(Nb_iterations/critere_fenetre)
+    moy_Ec_fenetre=[]
+    for i in range(fenetre//2,len(Ec)-fenetre//2):
+        moy=np.mean(Ec[i-fenetre//2:i+fenetre//2])
+        moy_Ec_fenetre.append(moy)
+    for j in range(len(moy_Ec_fenetre)-1):
+        if np.abs(moy_Ec_fenetre[j]-moy_Ec_fenetre[j+1])<critere_Ec:
+            debut_equilibre=j+fenetre//2
+            temperature_equilibre=2*moy_Ec_fenetre[j]/(d*N*kb)
+            return debut_equilibre, temperature_equilibre 
+    return None, None # au cas où aucun équilibre est atteint
+
+# paramètres pour l'équilibre
+
+critere_Ec=0.1*(10**4)
+critere_fenetre=Nb_iterations/100
+
+eq=equilibre(Ec, critere_Ec, critere_fenetre)
+if eq[0]!= None and eq[1]!= None : # si aucun équilibre est détecté alors début_equilibre et T_eq ne seront pas définis et python enverra un message d'erreur
+    debut_equilibre=eq[0]
+    T_eq=eq[1]
+
+print("debut_equilibre=",debut_equilibre)
+print("T_eq=",T_eq)
+
+"""
+DISTRIBUTION DES VITESSES A L'EQUILIBRE ET COMPARAISON AVEC LA DISTRIBUTION DE MAXWELL BOLTZMANN
+"""
+
+def distribution_Maxwell_Boltzmann_direction_i(Vi): # Vi : vitesse selon la direction i
+    return np.sqrt(m/(2*np.pi*kb*T_eq))*np.exp(-m*(Vi**2)/(2*kb*T_eq))
+
+def distribution_Malwell_Boltzmann_norme_vitesse_2d(V):
+    return (m*V/(kb*T_eq))*np.exp(-m*(V**2)/(2*kb*T_eq))
+
+# distributions théoriques
+Vx_min_eq=np.min(V_x[debut_equilibre])
+Vx_max_eq=np.max(V_x[debut_equilibre])
+Vx_th_eq=np.arange(Vx_min_eq,Vx_max_eq,(Vx_max_eq-Vx_min_eq)/100)
+distr_Vx_th_eq=distribution_Maxwell_Boltzmann_direction_i(Vx_th_eq)
+
+Vy_min_eq=np.min(V_y[debut_equilibre])
+Vy_max_eq=np.max(V_y[debut_equilibre])
+Vy_th_eq=np.arange(Vy_min_eq,Vy_max_eq,(Vy_max_eq-Vy_min_eq)/100)
+distr_Vy_th_eq=distribution_Maxwell_Boltzmann_direction_i(Vy_th_eq)
+
+V_eq=np.sqrt(V_x[debut_equilibre]**2 + V_y[debut_equilibre]**2)
+V_th=np.arange(0, np.max(V_eq), np.max(V_eq)/100)
+distr_V_th_eq=distribution_Malwell_Boltzmann_norme_vitesse_2d(V_th)
+
+# plot
+plt.figure()
+plt.hist(V_x[debut_equilibre],bins=20,density=True, label="simulation") # normalisation avec density=True afin de pouvoir comparer la densité de proba théorique avec l'histogramme issu de la simulation
+plt.plot(Vx_th_eq,distr_Vx_th_eq,label="théorie")
+plt.title("Distribution des vitesses à l'équilibre selon x")
+plt.xlabel("vitesse")
+plt.ylabel("nombre de particules")
+plt.legend()
+plt.savefig("distribution_Vx_equilibre.png")
+plt.show()
 
 plt.figure()
-plt.plot(time[:-1], np.log(energie))
-plt.title("log de l'énergie totale du système en fonction du temps")
-plt.xlabel("temps")
-plt.ylabel("log(E)")
-plt.grid()
+plt.hist(V_y[debut_equilibre],bins=20,density=True,label="simulation")
+plt.plot(Vy_th_eq,distr_Vy_th_eq,label="théorie")
+plt.title("Distribution des vitesses à l'équilibre selon y")
+plt.xlabel("vitesse")
+plt.ylabel("nombre de particules")
+plt.legend()
+plt.savefig("distribution_Vy_equilibre.png")
+plt.show()
+
+plt.figure()
+plt.hist(V[debut_equilibre],bins=20,density=True,label="simulation")
+plt.plot(V_th,distr_V_th_eq,label="théorie")
+plt.title("Distribution des normes de vitesse à l'équilibre")
+plt.xlabel("vitesse")
+plt.ylabel("nombre de particules")
+plt.legend()
+plt.savefig("distribution_V_equilibre.png")
 plt.show()

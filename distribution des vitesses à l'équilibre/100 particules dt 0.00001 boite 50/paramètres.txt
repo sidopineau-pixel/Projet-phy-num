@@ -1,0 +1,24 @@
+
+N=100 # nombre de particules
+R=1 # diamètre particule (unité naturelle)
+epsilon = 1 # énergie (unité naturelle)
+kb = 1 # constante de Boltzmann (unité naturelle)
+m=1 # masse des particules (unité naturelle)
+
+# temps :
+dt=0.00001 # intervalle de temps (unités naturelles)
+Nb_iterations=1000 # nombre d'itérations dans le calcul de positions, vitesses, accélérations
+
+r_lim=10000 # portée maximale de l'interraction (à ajuster)
+
+
+x_min=0
+x_max=50
+y_min=0
+y_max=50
+Lx=x_max - x_min
+Ly=y_max - y_min
+dx=0.01
+dy=0.01
+
+densité particules = 0.04

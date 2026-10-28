@@ -14,15 +14,17 @@ import matplotlib.pyplot as plt
 PARAMETRES
 """
 
-N=10 # nombre de particules
+N=100 # nombre de particules
 R=1 # diamètre particule (unité naturelle)
 epsilon = 1 # énergie (unité naturelle)
 kb = 1 # constante de Boltzmann (unité naturelle)
 m=1 # masse des particules (unité naturelle)
 
 # temps :
-dt=0.01 # intervalle de temps (unités naturelles)
-Nb_iterations=200 # nombre d'itérations dans le calcul de positions, vitesses, accélérations
+dt=0.00001 # intervalle de temps (unités naturelles)
+Nb_iterations=1000 # nombre d'itérations dans le calcul de positions, vitesses, accélérations
+
+r_lim=10000 # portée maximale de l'interraction (à ajuster)
 
 """
 BOITE 2D : bords fixes (2 possibilités de conditions aux limites : périodique ou réflexion sur la surface)
@@ -31,14 +33,16 @@ BOITE 2D : bords fixes (2 possibilités de conditions aux limites : périodique 
 # 2D : boite de 10 par 10
 
 x_min=0
-x_max=10
+x_max=37
 y_min=0
-y_max=10
+y_max=37
 Lx=x_max - x_min
 Ly=y_max - y_min
 dx=0.01
 dy=0.01
 
+A=Lx*Ly
+rho=N/A # densité de particules
 
 """
 POTENTIEL DE LENNARD-JONES
@@ -251,16 +255,19 @@ a_init=(-1/m)*somme_des_gradients(r_init) # accélération initiale
 # plt.figure()
 # plt.hist(V_init_norm,bins=15)
 # plt.title("Distribution de la norme des vitesses initiales")
+# plt.savefig("distribution_norme_vitesses_initiales.png")
 # plt.show()
 
 # plt.figure()
 # plt.hist(Vx_init,bins=15)
 # plt.title("Distribution des vitesses initiales selon x")
+# plt.savefig("distribution_vitesses_initiales_selon_x.png")
 # plt.show()
 
 # plt.figure()
 # plt.hist(Vy_init,bins=15)
 # plt.title("Distribution des vitesses initiales selon y")
+# plt.savefig("distribution_vitesses_initiales_selon_y.png")
 # plt.show()
 
 
