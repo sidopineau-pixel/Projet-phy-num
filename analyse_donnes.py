@@ -4,12 +4,13 @@ IMPORT DES BIBLIOTHEQUES
 
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 """
 PARAMETRES
 """
 
-N=100 # nombre de particules
+N=500 # nombre de particules
 R=1 # diamètre particule (unité naturelle)
 epsilon = 1 # énergie (unité naturelle)
 kb = 1 # constante de Boltzmann (unité naturelle)
@@ -27,9 +28,9 @@ BOITE 2D : bords fixes (2 possibilités de conditions aux limites : périodique 
 # 2D : boite de 10 par 10
 
 x_min=0
-x_max=44
+x_max=111
 y_min=0
-y_max=44
+y_max=111
 Lx=x_max - x_min
 Ly=y_max - y_min
 dx=0.01
@@ -246,7 +247,7 @@ plt.savefig("distribution_Vy_equilibre.png")
 plt.show()
 
 plt.figure()
-plt.hist(V[debut_equilibre],bins=20,density=True,label="simulation")
+plt.hist(V_eq[debut_equilibre],bins=20,density=True,label="simulation")
 plt.plot(V_th,distr_V_th_eq,label="théorie")
 plt.title("Distribution des normes de vitesse à l'équilibre")
 plt.xlabel("vitesse")
@@ -254,3 +255,4 @@ plt.ylabel("nombre de particules")
 plt.legend()
 plt.savefig("distribution_V_equilibre.png")
 plt.show()
+

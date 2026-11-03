@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 PARAMETRES
 """
 
-N=100 # nombre de particules
+N=500 # nombre de particules
 R=1 # diamètre particule (unité naturelle)
 epsilon = 1 # énergie (unité naturelle)
 kb = 1 # constante de Boltzmann (unité naturelle)
@@ -33,9 +33,9 @@ BOITE 2D : bords fixes (2 possibilités de conditions aux limites : périodique 
 # 2D : boite de 10 par 10
 
 x_min=0
-x_max=37
+x_max=111
 y_min=0
-y_max=37
+y_max=111
 Lx=x_max - x_min
 Ly=y_max - y_min
 dx=0.01
@@ -43,6 +43,11 @@ dy=0.01
 
 A=Lx*Ly
 rho=N/A # densité de particules
+
+"""
+GRAVITE (nulle sauf lorsque l'on étudie l'atmosphère)
+"""
+g=0.0
 
 """
 POTENTIEL DE LENNARD-JONES
@@ -280,3 +285,6 @@ calcul_r_v_a_analytique=calcul_positions_vitesses_accelerations(Nb_iterations,r_
 calcul_r_v_a_analytique = calcul_r_v_a_analytique.reshape(-1, 7) # afin de pouvoir convertir le fichier de données au format txt je change le format du tableau : on aura sept colonnes comprennant : temps, x, y, V_x, V_y, a_x, a_y (le -1 indique que python calcule automatiquement le nombre de lignes necessaires)
 
 np.savetxt("calcul_r_v_a_analytique.txt",calcul_r_v_a_analytique, delimiter=",",header="Temps,X,Y,Vx,Vy,Ax,Ay")
+
+print(calcul_r_v_a_analytique.shape)
+print(calcul_r_v_a_analytique.size)
