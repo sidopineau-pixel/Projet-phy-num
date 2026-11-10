@@ -10,7 +10,7 @@ import os
 PARAMETRES
 """
 
-N=500 # nombre de particules
+N=100 # nombre de particules
 R=1 # diamètre particule (unité naturelle)
 epsilon = 1 # énergie (unité naturelle)
 kb = 1 # constante de Boltzmann (unité naturelle)
@@ -28,9 +28,9 @@ BOITE 2D : bords fixes (2 possibilités de conditions aux limites : périodique 
 # 2D : boite de 10 par 10
 
 x_min=0
-x_max=111
+x_max=44
 y_min=0
-y_max=111
+y_max=44
 Lx=x_max - x_min
 Ly=y_max - y_min
 dx=0.01
@@ -59,118 +59,185 @@ r=data_array[:,:,1:3]
 V=data_array[:,:,3:5]
 a=data_array[:,:,5:7]
 
-"""
-PLOT DE LA TRAJECTOIRE DES PARTICULES AU COURS DU TEMPS
-"""
+# """
+# PLOT DE LA TRAJECTOIRE DES PARTICULES AU COURS DU TEMPS
+# """
 
+# # plt.figure()
+# # for j in range(N): # tracé de la trajectoire pour chaque particule (boucle sur les particules)
+# #     plt.plot(r[:, j, 0], r[:, j, 1],'o' ,linestyle=':',label=f'Particule {j}')
+# #     #plt.plot(r[:, j, 0], r[:, j, 1],'o',label=f'Particule {j}')
+# #     plt.scatter(r[0,j,0],r[0,j,1],color='black',s=150,label="positions initiales" if j==N-1 else None) # ajout d'un point noir pour indiquer la position initiale
+# # plt.xlabel('X')
+# # plt.ylabel('Y')
+# # plt.title('Trajectoires des particules')
+# # plt.legend()
+# # plt.grid()
+# # plt.xlim(x_min,x_max)
+# # plt.ylim(y_min,y_max)
+# # plt.savefig("trajectoires particules.png")
+# # plt.show()
+
+# """
+# ANIMATION TRAJECTOIRE DES PARTICULES (code de cette partie fait par Chat GPT)
+# """
+
+# from matplotlib.animation import FuncAnimation
+
+# # Création de la figure
+# fig, ax = plt.subplots(figsize=(8, 8))
+
+# # Définition des limites de la boîte
+# ax.set_xlim(x_min, x_max)
+# ax.set_ylim(y_min, y_max)
+
+# ax.set_xlabel("X")
+# ax.set_ylabel("Y")
+# ax.set_title("Mouvement des particules au cours du temps")
+
+# ax.set_aspect('equal')
+# ax.grid()
+
+# # Initialisation des particules
+# scatter = ax.scatter(r[0, :, 0], r[0, :, 1],
+#                      s=50, color='blue')
+
+# # Affichage du temps
+# time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes)
+
+# # Fonction d'initialisation
+# def init():
+#     scatter.set_offsets(r[0])
+#     time_text.set_text('')
+#     return scatter, time_text
+
+# # Fonction de mise à jour à chaque image
+# def update(frame):
+#     scatter.set_offsets(r[frame])
+#     time_text.set_text(f"Temps : {time[frame]:.5f}")
+#     return scatter, time_text
+
+# # Création de l'animation
+
+# ani = FuncAnimation(
+#     fig,
+#     update,
+#     frames=range(0, Nb_iterations + 1, 20),
+#     init_func=init,
+#     interval=1,
+#     blit=False,
+#     repeat=False
+# )
+
+# plt.show()
+
+
+# # Sauvegarde
+
+# ani.save(
+#     "animation_particules.gif",
+#     writer="pillow",
+#     fps=100
+# )
+
+
+# """
+# CALCUL DE L'ENERGIE DU SYSTEME
+# """
+
+# V_x=data_array[:,:,3] # vitesses selon x
+# V_y=data_array[:,:,4] # vitesses selon y
+
+
+# def energie_cinetique_totale():
+#     Ec=[] 
+#     for t in range(Nb_iterations) : # boucle sur le temps
+#         Ec_t=0 
+#         for i in range(N): # boucle sur le nombre de particules
+#             V_carre=V_x[t][i]**2 + V_y[t][i]**2 # vitesse au carré de la particule i au temps t
+#             Ec_t+=0.5*m*V_carre
+#         Ec.append(Ec_t)
+#     return np.array(Ec)
+
+# def Lennard_Jones(r):
+#     u=4*epsilon*((R/r)**12 - (R/r)**6)
+#     return u
+
+# def energie_potentielle_par_particule(r): # r correspond au n-uplet contenant toutes les positions des particules / on tient compte des CL périodiques
+#     U_tot=np.zeros((N,N)) # initialisation de la matrice d'interraction
+#     for i in range(N): # boucle sur le nombre de particules
+#         for j in range(N): 
+#             if i!=j : # on ne calcule pas le potentiel d'interaction entre une particule et elle même, U_tot aura tous ses coeffs diagonaux nuls
+#                 # distance réelle entre la particule i et la particule j
+#                 delta_x=r[i,0]-r[j,0]
+#                 delta_y=r[i,1]-r[j,1]
+#                 # distance avec les conditions périodiques entre la particule i et la particule j
+#                 distances_possibles_x=np.array(np.abs([delta_x -Lx, delta_x, delta_x +Lx])) # on ne considère que les boites directement adjacentes à notre boite
+#                 distances_possibles_y=np.array(np.abs([delta_y -Ly, delta_y, delta_y +Ly]))
+#                 d_x_périodique=np.min(distances_possibles_x, axis=0) # distance selon x périodique (voir brouillon pour le calcul)
+#                 d_y_periodique=np.min(distances_possibles_y,axis=0) # distance selon y périodique
+#                 d_i_j=np.sqrt(d_x_périodique**2+d_y_periodique**2) # distance entre la particule i et la particules j en tenant compte des CL périodiques
+#                 if d_i_j < r_lim : # on limite la portée de l'interaction
+#                     u_i_j=Lennard_Jones(d_i_j)
+#                     U_tot[i][j]=u_i_j
+#     return U_tot
+
+# def energie_potentielle_totale(r):
+#     Ep=[]
+#     for t in range(Nb_iterations):
+#         r_t=r[t]
+#         matrice_energies_potentielles=energie_potentielle_par_particule(r_t)
+#         Ep.append(np.sum(matrice_energies_potentielles)/2) # l'énergie potentielle totale est la somme des énergies potentielles d'interaction entre chaque particule / 2 (on divise par 2 pour ne pas compter 2 fois la même interaction entre i et j et j et i)
+#     return np.array(Ep)
+
+# def energie_totale(r):
+#     return energie_cinetique_totale() + energie_potentielle_totale(r) # return un tableau de longueur Nb_iterations correspondant à l'énergie totale au temps t
+
+# # calcul des énergies
+# energie=energie_totale(r)
+# Ec = energie_cinetique_totale()
+# Ep = energie_potentielle_totale(r)
+
+
+# # plot des énergies
 # plt.figure()
-# for j in range(N): # tracé de la trajectoire pour chaque particule (boucle sur les particules)
-#     plt.plot(r[:, j, 0], r[:, j, 1],'o' ,linestyle=':',label=f'Particule {j}')
-#     #plt.plot(r[:, j, 0], r[:, j, 1],'o',label=f'Particule {j}')
-#     plt.scatter(r[0,j,0],r[0,j,1],color='black',s=150,label="positions initiales" if j==N-1 else None) # ajout d'un point noir pour indiquer la position initiale
-# plt.xlabel('X')
-# plt.ylabel('Y')
-# plt.title('Trajectoires des particules')
+# plt.plot(time[:len(Ec)],Ec,label="énergie cinétique")
+# plt.plot(time[:len(Ep)],Ep,label="énergie potentielle")
+# plt.plot(time[:len(energie)],energie, label="energie totale")
+# plt.xlabel("temps")
+# plt.ylabel("energie")
 # plt.legend()
 # plt.grid()
-# plt.xlim(x_min,x_max)
-# plt.ylim(y_min,y_max)
-# plt.savefig("trajectoires particules.png")
+# plt.savefig("energie_au_cours_du_temps.png")
 # plt.show()
 
+# # sauvegarde des énergies
+# data_Ec=np.column_stack((time[:len(Ec)],Ec))
+# data_Ep=np.column_stack((time[:len(Ep)],Ep))
+# data_E=np.column_stack((time[:len(energie)],energie))
+
+# np.savetxt("Energie_cinetique.txt",data_Ec,delimiter=",",header="Temps,Ec")
+# np.savetxt("Energie_potentielle.txt",data_Ep,delimiter=",",header="Temps,Ep")
+# np.savetxt("Energie_totale.txt",data_E,delimiter=",",header="Temps,E")
 
 """
-CALCUL DE L'ENERGIE DU SYSTEME
+CALCUL DE LA PRESSION DU SYSTEME
 """
 
-V_x=data_array[:,:,3] # vitesses selon x
-V_y=data_array[:,:,4] # vitesses selon y
 
-
-def energie_cinetique_totale():
-    Ec=[] 
-    for t in range(Nb_iterations) : # boucle sur le temps
-        Ec_t=0 
-        for i in range(N): # boucle sur le nombre de particules
-            V_carre=V_x[t][i]**2 + V_y[t][i]**2 # vitesse au carré de la particule i au temps t
-            Ec_t+=0.5*m*V_carre
-        Ec.append(Ec_t)
-    return np.array(Ec)
-
-def Lennard_Jones(r):
-    u=4*epsilon*((R/r)**12 - (R/r)**6)
-    return u
-
-def energie_potentielle_par_particule(r): # r correspond au n-uplet contenant toutes les positions des particules / on tient compte des CL périodiques
-    U_tot=np.zeros((N,N)) # initialisation de la matrice d'interraction
-    for i in range(N): # boucle sur le nombre de particules
-        for j in range(N): 
-            if i!=j : # on ne calcule pas le potentiel d'interaction entre une particule et elle même, U_tot aura tous ses coeffs diagonaux nuls
-                # distance réelle entre la particule i et la particule j
-                delta_x=r[i,0]-r[j,0]
-                delta_y=r[i,1]-r[j,1]
-                # distance avec les conditions périodiques entre la particule i et la particule j
-                distances_possibles_x=np.array(np.abs([delta_x -Lx, delta_x, delta_x +Lx])) # on ne considère que les boites directement adjacentes à notre boite
-                distances_possibles_y=np.array(np.abs([delta_y -Ly, delta_y, delta_y +Ly]))
-                d_x_périodique=np.min(distances_possibles_x, axis=0) # distance selon x périodique (voir brouillon pour le calcul)
-                d_y_periodique=np.min(distances_possibles_y,axis=0) # distance selon y périodique
-                d_i_j=np.sqrt(d_x_périodique**2+d_y_periodique**2) # distance entre la particule i et la particules j en tenant compte des CL périodiques
-                if d_i_j < r_lim : # on limite la portée de l'interaction
-                    u_i_j=Lennard_Jones(d_i_j)
-                    U_tot[i][j]=u_i_j
-    return U_tot
-
-def energie_potentielle_totale(r):
-    Ep=[]
-    for t in range(Nb_iterations):
-        r_t=r[t]
-        matrice_energies_potentielles=energie_potentielle_par_particule(r_t)
-        Ep.append(np.sum(matrice_energies_potentielles)/2) # l'énergie potentielle totale est la somme des énergies potentielles d'interaction entre chaque particule / 2 (on divise par 2 pour ne pas compter 2 fois la même interaction entre i et j et j et i)
-    return np.array(Ep)
-
-def energie_totale(r):
-    return energie_cinetique_totale() + energie_potentielle_totale(r) # return un tableau de longueur Nb_iterations correspondant à l'énergie totale au temps t
-
-# calcul des énergies
-energie=energie_totale(r)
-Ec = energie_cinetique_totale()
-Ep = energie_potentielle_totale(r)
-
-# # plot log de l'énergie totale
-# plt.figure()
-# plt.plot(time[:-1], np.log(energie))
-# plt.title("log de l'énergie totale du système en fonction du temps")
-# plt.xlabel("temps")
-# plt.ylabel("log(E)")
-# plt.grid()
-# plt.savefig("log_energie_au_cours_du_temps.png")
-# plt.show()
-
-
-# plot des énergies
-plt.figure()
-plt.plot(time[:len(Ec)],Ec,label="énergie cinétique")
-plt.plot(time[:len(Ep)],Ep,label="énergie potentielle")
-plt.plot(time[:len(energie)],energie, label="energie totale")
-plt.xlabel("temps")
-plt.ylabel("energie")
-plt.legend()
-plt.grid()
-plt.savefig("energie_au_cours_du_temps.png")
-plt.show()
-
-# sauvegarde des énergies
-data_Ec=np.column_stack((time[:len(Ec)],Ec))
-data_Ep=np.column_stack((time[:len(Ep)],Ep))
-data_E=np.column_stack((time[:len(energie)],energie))
-
-np.savetxt("Energie_cinetique.txt",data_Ec,delimiter=",",header="Temps,Ec")
-np.savetxt("Energie_potentielle.txt",data_Ep,delimiter=",",header="Temps,Ep")
-np.savetxt("Energie_totale.txt",data_E,delimiter=",",header="Temps,E")
 
 """
 DETERMINATION DE L'EQUILIBRE DU SYSTEME
 """
+
+# lecture des données 
+data_energie_cinetique=np.loadtxt("Energie_cinetique.txt",skiprows=1, delimiter=",", dtype=float)
+
+time=data_energie_cinetique[:,0]
+Ec=data_energie_cinetique[:,1]
+
+V_x=data_array[:,:,3] # vitesses selon x
+V_y=data_array[:,:,4] # vitesses selon y
 
 def equilibre(Ec,critere_Ec,critere_fenetre): 
     # un système est à l'équilibre lorsque ses grandeurs macroscopiques ne dépendent plus du temps, or V,N sont fixés, on veut voir quand T devient constante
@@ -210,6 +277,34 @@ def distribution_Maxwell_Boltzmann_direction_i(Vi): # Vi : vitesse selon la dire
 def distribution_Malwell_Boltzmann_norme_vitesse_2d(V):
     return (m*V/(kb*T_eq))*np.exp(-m*(V**2)/(2*kb*T_eq))
 
+def histogrammes_moyens_equilibre(debut_equilibre, V_x, V_y):
+    histogrammes_x = []
+    histogrammes_y = []
+    histogrammes_V = []
+    V = np.sqrt(V_x**2 + V_y**2)
+    bins_x=np.linspace(np.min(V_x[debut_equilibre:]),np.max(V_x[debut_equilibre:]),30)
+    bins_y=np.linspace(np.min(V_y[debut_equilibre:]),np.max(V_y[debut_equilibre:]),30)
+    bins_V=np.linspace(np.min(V[debut_equilibre:]),np.max(V[debut_equilibre:]),30)
+    centres_x=(bins_x[:-1]+bins_x[1:])/2
+    centres_y=(bins_y[:-1]+bins_y[1:])/2
+    centres_V=(bins_V[:-1]+bins_V[1:])/2
+    for i in range(debut_equilibre, Nb_iterations+1):
+        hist_x= np.histogram(V_x[i, :],bins=bins_x,density=True)[0]
+        histogrammes_x.append(hist_x)
+        hist_y=np.histogram(V_y[i, :],bins=bins_y,density=True)[0]
+        histogrammes_y.append(hist_y)
+        hist_V=np.histogram(V[i,:],bins=bins_V,density=True)[0]
+        histogrammes_V.append(hist_V)
+    hist_moy_x=np.mean(histogrammes_x,axis=0)
+    hist_moy_y=np.mean(histogrammes_y,axis=0)
+    hist_moy_V=np.mean(histogrammes_V,axis=0)
+
+    return centres_x,centres_y,centres_V, hist_moy_x, hist_moy_y, hist_moy_V
+
+# distributions de vitesses à l'équilibre moyennées en temps (on utilise l'hypothèse ergodique)
+
+centres_x,centres_y,centres_V, hist_moy_x, hist_moy_y, hist_moy_V=histogrammes_moyens_equilibre(debut_equilibre,V_x,V_y)
+
 # distributions théoriques
 Vx_min_eq=np.min(V_x[debut_equilibre])
 Vx_max_eq=np.max(V_x[debut_equilibre])
@@ -225,34 +320,67 @@ V_eq=np.sqrt(V_x[debut_equilibre]**2 + V_y[debut_equilibre]**2)
 V_th=np.arange(0, np.max(V_eq), np.max(V_eq)/100)
 distr_V_th_eq=distribution_Malwell_Boltzmann_norme_vitesse_2d(V_th)
 
-# plot
+# plot avec V prises moyennees après l'équilibre
+
 plt.figure()
-plt.hist(V_x[debut_equilibre],bins=20,density=True, label="simulation") # normalisation avec density=True afin de pouvoir comparer la densité de proba théorique avec l'histogramme issu de la simulation
-plt.plot(Vx_th_eq,distr_Vx_th_eq,label="théorie")
-plt.title("Distribution des vitesses à l'équilibre selon x")
+plt.bar(centres_x,hist_moy_x,label="simulation (moyenne temporelle)",color="blue")
+plt.plot(Vx_th_eq,distr_Vx_th_eq,label="théorie",color="red")
+plt.title("distribution moyenne des vitesses selon x")
 plt.xlabel("vitesse")
-plt.ylabel("nombre de particules")
+plt.ylabel("densité de probabilité")
 plt.legend()
-plt.savefig("distribution_Vx_equilibre.png")
+plt.savefig("distribution_Vx_eq.png")
 plt.show()
 
 plt.figure()
-plt.hist(V_y[debut_equilibre],bins=20,density=True,label="simulation")
-plt.plot(Vy_th_eq,distr_Vy_th_eq,label="théorie")
-plt.title("Distribution des vitesses à l'équilibre selon y")
+plt.bar(centres_y,hist_moy_y,label="simulation (moyenne temporelle)",color="blue")
+plt.plot(Vy_th_eq,distr_Vy_th_eq,label="théorie",color="red")
+plt.title("distribution moyenne des vitesses selon y")
 plt.xlabel("vitesse")
-plt.ylabel("nombre de particules")
+plt.ylabel("densité de probabilité")
 plt.legend()
-plt.savefig("distribution_Vy_equilibre.png")
+plt.savefig("distribution_Vy_eq.png")
 plt.show()
 
 plt.figure()
-plt.hist(V_eq[debut_equilibre],bins=20,density=True,label="simulation")
-plt.plot(V_th,distr_V_th_eq,label="théorie")
-plt.title("Distribution des normes de vitesse à l'équilibre")
+plt.bar(centres_V,hist_moy_V,label="simulation (moyenne temporelle)",color="blue")
+plt.plot(V_th,distr_V_th_eq,label="théorie",color="red")
+plt.title("distribution moyenne norme de la vitesse")
 plt.xlabel("vitesse")
-plt.ylabel("nombre de particules")
+plt.ylabel("densité de probabilité")
 plt.legend()
-plt.savefig("distribution_V_equilibre.png")
+plt.savefig("distribution_V_eq.png")
 plt.show()
+
+
+# # plot avec V prises au début de l'équilibre
+# plt.figure()
+# plt.hist(V_x[debut_equilibre],bins=30,density=True, label="simulation") # normalisation avec density=True afin de pouvoir comparer la densité de proba théorique avec l'histogramme issu de la simulation
+# plt.plot(Vx_th_eq,distr_Vx_th_eq,label="théorie")
+# plt.title("Distribution des vitesses à l'équilibre selon x")
+# plt.xlabel("vitesse")
+# plt.ylabel("nombre de particules")
+# plt.legend()
+# plt.savefig("distribution_Vx_equilibre.png")
+# plt.show()
+
+# plt.figure()
+# plt.hist(V_y[debut_equilibre],bins=30,density=True,label="simulation")
+# plt.plot(Vy_th_eq,distr_Vy_th_eq,label="théorie")
+# plt.title("Distribution des vitesses à l'équilibre selon y")
+# plt.xlabel("vitesse")
+# plt.ylabel("nombre de particules")
+# plt.legend()
+# plt.savefig("distribution_Vy_equilibre.png")
+# plt.show()
+
+# plt.figure()
+# plt.hist(V_eq[debut_equilibre],bins=30,density=True,label="simulation")
+# plt.plot(V_th,distr_V_th_eq,label="théorie")
+# plt.title("Distribution des normes de vitesse à l'équilibre")
+# plt.xlabel("vitesse")
+# plt.ylabel("nombre de particules")
+# plt.legend()
+# plt.savefig("distribution_V_equilibre.png")
+# plt.show()
 

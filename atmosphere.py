@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 PARAMETRES
 """
 
-N=500 # nombre de particules
+N=100 # nombre de particules
 R=1 # diamètre particule (unité naturelle)
 epsilon = 1 # énergie (unité naturelle)
 kb = 1 # constante de Boltzmann (unité naturelle)
@@ -31,6 +31,7 @@ dt=0.00001 # intervalle de temps (unités naturelles)
 Nb_iterations=1000 # nombre d'itérations dans le calcul de positions, vitesses, accélérations
 
 r_lim=10000 # portée maximale de l'interraction (à ajuster)
+g=0.02 # accélération de la pesanteur
 
 """
 BOITE 2D : bords fixes (2 possibilités de conditions aux limites : réflexion sur les parois (on ne peut pas mettre de CL périodique pour étudier la gravité...)
@@ -39,9 +40,9 @@ BOITE 2D : bords fixes (2 possibilités de conditions aux limites : réflexion s
 # 2D : boite de 10 par 10
 
 x_min=0
-x_max=100
+x_max=44
 y_min=0
-y_max=100
+y_max=44
 Lx=x_max - x_min
 Ly=y_max - y_min
 dx=0.01
@@ -202,14 +203,14 @@ def calcul_positions_vitesses_accelerations(Nb_iterations, r_init, V_init, a_ini
         r_new[:,0]=r_new[:,0]%Lx # CL périodiques
 
         # conditions de réflexion selon y
-        for j in range(N):
+        for j in range(N): # pour chaque particule
             if r_new[j,1] < y_min: # si la particule dépasse le bord inférieur
-                r_new[j,1] = 2*y_min - r_new[j,1]
-                V_new[j,1] = -V_new[j,1] # vitesse change de signe
+                r_new[j,1] = 2*y_min - r_new[j,1] # nouvelle position à l'intérieur de la boite
+                V_new[j,1] = -V_new[j,1] # Vy change de signe
 
             elif r_new[j,1] > y_max: # si la particule dépasse le bord supérieur
-                r_new[j,1] = 2*y_max - r_new[j,1]
-                V_new[j,1] = -V_new[j,1]
+                r_new[j,1] = 2*y_max - r_new[j,1] # nouvelle position à l'intérieur de la boite
+                V_new[j,1] = -V_new[j,1] # Vy change de signe
 
         # calcul de la nouvelle accélération
         gradients = somme_des_gradients(r_new)
@@ -246,7 +247,6 @@ def distribution_uniforme_positions(N): # on veut tirer la position initiale des
     r=np.column_stack((x, y))
     return r
 
-T_init=1 # température initiale (en K)
 
 def distribution_gaussienne_vitesses(N):
     # mu_init=np.sqrt(3*kb*T_init/m) # correspond à la vitesse quadratique moyenne (d'après la thermo, permet d'avoir un ordre d'idée)
@@ -257,10 +257,13 @@ def distribution_gaussienne_vitesses(N):
     V=np.column_stack((Vx,Vy))
     return V
 
+#def temperature_initiale(r_init): # en phase gaz 
+
+
 r_init = distribution_uniforme_positions(N) # positions initiales
 V_init = distribution_gaussienne_vitesses(N) # vitesses initiales 
-a_init[:,0]=(-1/m)*somme_des_gradients(r_init)[:,0] # accélération initiale selon x
-a_init[:,1]=(-1/m)*somme_des_gradients(r_init)[:,1] -g  # accélération initiale selon y
+a_init=(-1/m)*somme_des_gradients(r_init) # accélération initiale 
+a_init[:,1]+= -g  # accélération initiale selon y contient aussi l'accélération de la pesanteur
 
 
 # # plot des positions initiales dans la boite
@@ -308,7 +311,7 @@ SAUVEGARDE DES DONNES DE POSITION, VITESSE, ACCELERATION
 
 
 calcul_r_v_a_analytique_atmosphere=calcul_positions_vitesses_accelerations(Nb_iterations,r_init,V_init,a_init)
-calcul_r_v_a_analytique_atmosphere = calcul_r_v_a_analytique.reshape(-1, 7) # afin de pouvoir convertir le fichier de données au format txt je change le format du tableau : on aura sept colonnes comprennant : temps, x, y, V_x, V_y, a_x, a_y (le -1 indique que python calcule automatiquement le nombre de lignes necessaires)
+calcul_r_v_a_analytique_atmosphere = calcul_r_v_a_analytique_atmosphere.reshape(-1, 7) # afin de pouvoir convertir le fichier de données au format txt je change le format du tableau : on aura sept colonnes comprennant : temps, x, y, V_x, V_y, a_x, a_y (le -1 indique que python calcule automatiquement le nombre de lignes necessaires)
 
 np.savetxt("calcul_r_v_a_analytique_atmosphere.txt",calcul_r_v_a_analytique_atmosphere, delimiter=",",header="Temps,X,Y,Vx,Vy,Ax,Ay")
 

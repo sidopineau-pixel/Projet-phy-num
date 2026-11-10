@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 PARAMETRES
 """
 
-N=500 # nombre de particules
+N=100 # nombre de particules
 R=1 # diamètre particule (unité naturelle)
 epsilon = 1 # énergie (unité naturelle)
 kb = 1 # constante de Boltzmann (unité naturelle)
@@ -22,7 +22,9 @@ m=1 # masse des particules (unité naturelle)
 
 # temps :
 dt=0.00001 # intervalle de temps (unités naturelles)
-Nb_iterations=1000 # nombre d'itérations dans le calcul de positions, vitesses, accélérations
+Nb_iterations=10000 # nombre d'itérations dans le calcul de positions, vitesses, accélérations
+
+
 
 r_lim=10000 # portée maximale de l'interraction (à ajuster)
 
@@ -33,9 +35,9 @@ BOITE 2D : bords fixes (2 possibilités de conditions aux limites : périodique 
 # 2D : boite de 10 par 10
 
 x_min=0
-x_max=111
+x_max=44
 y_min=0
-y_max=111
+y_max=44
 Lx=x_max - x_min
 Ly=y_max - y_min
 dx=0.01
@@ -44,10 +46,6 @@ dy=0.01
 A=Lx*Ly
 rho=N/A # densité de particules
 
-"""
-GRAVITE (nulle sauf lorsque l'on étudie l'atmosphère)
-"""
-g=0.0
 
 """
 POTENTIEL DE LENNARD-JONES
