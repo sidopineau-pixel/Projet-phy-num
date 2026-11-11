@@ -24,8 +24,6 @@ m=1 # masse des particules (unité naturelle)
 dt=0.00001 # intervalle de temps (unités naturelles)
 Nb_iterations=10000 # nombre d'itérations dans le calcul de positions, vitesses, accélérations
 
-
-
 r_lim=10000 # portée maximale de l'interraction (à ajuster)
 
 """
@@ -229,10 +227,21 @@ def distribution_uniforme_vitesses(N,Vmin,Vmax):
     V=np.column_stack((Vx, Vy))
     return V
 
+def distribution_facile_vitesses(N,V1,V2,V3,V4):
+    Vx=np.zeros(N)
+    Vy=np.zeros(N)
+    Vx[:int(N/2)]=V1
+    Vx[int(N/2):]=V2
+    Vy[:int(N/2)]=V3
+    Vy[int(N/2):]=V4
+    V=np.column_stack((Vx,Vy))
+    return V
+
 r_init = distribution_uniforme_positions(N) # positions initiales
 #V_init = distribution_gaussienne_vitesses(N) # vitesses initiales
-V_init = distribution_uniforme_vitesses(N,-5,5) 
+#V_init = distribution_uniforme_vitesses(N,-5,5) 
 a_init=(-1/m)*somme_des_gradients(r_init) # accélération initiale
+V_init=distribution_facile_vitesses(N,3,-2,2,-3)
 #a_init = np.zeros_like(r_init) # accélérations initiales (je ne sais pas)
 
 # # plot des positions initiales dans la boite

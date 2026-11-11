@@ -16,7 +16,7 @@ epsilon = 1 # énergie (unité naturelle)
 kb = 1 # constante de Boltzmann (unité naturelle)
 m=1 # masse des particules (unité naturelle)
 dt=0.00001 # intervalle de temps (unités naturelles)
-Nb_iterations=1000
+Nb_iterations=10000
 
 r_lim=10000 # portée maximale de l'interraction (à ajuster)
 
@@ -78,153 +78,189 @@ a=data_array[:,:,5:7]
 # # plt.savefig("trajectoires particules.png")
 # # plt.show()
 
-# """
-# ANIMATION TRAJECTOIRE DES PARTICULES (code de cette partie fait par Chat GPT)
-# """
+"""
+ANIMATION TRAJECTOIRE DES PARTICULES (code de cette partie fait par Chat GPT)
+"""
 
-# from matplotlib.animation import FuncAnimation
+from matplotlib.animation import FuncAnimation
 
-# # Création de la figure
-# fig, ax = plt.subplots(figsize=(8, 8))
+# Création de la figure
+fig, ax = plt.subplots(figsize=(8, 8))
 
-# # Définition des limites de la boîte
-# ax.set_xlim(x_min, x_max)
-# ax.set_ylim(y_min, y_max)
+# Définition des limites de la boîte
+ax.set_xlim(x_min, x_max)
+ax.set_ylim(y_min, y_max)
 
-# ax.set_xlabel("X")
-# ax.set_ylabel("Y")
-# ax.set_title("Mouvement des particules au cours du temps")
+ax.set_xlabel("X")
+ax.set_ylabel("Y")
+ax.set_title("Mouvement des particules au cours du temps")
 
-# ax.set_aspect('equal')
-# ax.grid()
+ax.set_aspect('equal')
+ax.grid()
 
-# # Initialisation des particules
-# scatter = ax.scatter(r[0, :, 0], r[0, :, 1],
-#                      s=50, color='blue')
+# Initialisation des particules
+scatter = ax.scatter(r[0, :, 0], r[0, :, 1],
+                     s=50, color='blue')
 
-# # Affichage du temps
-# time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes)
+# Affichage du temps
+time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes)
 
-# # Fonction d'initialisation
-# def init():
-#     scatter.set_offsets(r[0])
-#     time_text.set_text('')
-#     return scatter, time_text
+# Fonction d'initialisation
+def init():
+    scatter.set_offsets(r[0])
+    time_text.set_text('')
+    return scatter, time_text
 
-# # Fonction de mise à jour à chaque image
-# def update(frame):
-#     scatter.set_offsets(r[frame])
-#     time_text.set_text(f"Temps : {time[frame]:.5f}")
-#     return scatter, time_text
+# Fonction de mise à jour à chaque image
+def update(frame):
+    scatter.set_offsets(r[frame])
+    time_text.set_text(f"Temps : {time[frame]:.5f}")
+    return scatter, time_text
 
-# # Création de l'animation
+# Création de l'animation
 
-# ani = FuncAnimation(
-#     fig,
-#     update,
-#     frames=range(0, Nb_iterations + 1, 20),
-#     init_func=init,
-#     interval=1,
-#     blit=False,
-#     repeat=False
-# )
+ani = FuncAnimation(
+    fig,
+    update,
+    frames=range(0, Nb_iterations + 1, 20),
+    init_func=init,
+    interval=1,
+    blit=False,
+    repeat=False
+)
 
-# plt.show()
-
-
-# # Sauvegarde
-
-# ani.save(
-#     "animation_particules.gif",
-#     writer="pillow",
-#     fps=100
-# )
+plt.show()
 
 
-# """
-# CALCUL DE L'ENERGIE DU SYSTEME
-# """
+# Sauvegarde
 
-# V_x=data_array[:,:,3] # vitesses selon x
-# V_y=data_array[:,:,4] # vitesses selon y
-
-
-# def energie_cinetique_totale():
-#     Ec=[] 
-#     for t in range(Nb_iterations) : # boucle sur le temps
-#         Ec_t=0 
-#         for i in range(N): # boucle sur le nombre de particules
-#             V_carre=V_x[t][i]**2 + V_y[t][i]**2 # vitesse au carré de la particule i au temps t
-#             Ec_t+=0.5*m*V_carre
-#         Ec.append(Ec_t)
-#     return np.array(Ec)
-
-# def Lennard_Jones(r):
-#     u=4*epsilon*((R/r)**12 - (R/r)**6)
-#     return u
-
-# def energie_potentielle_par_particule(r): # r correspond au n-uplet contenant toutes les positions des particules / on tient compte des CL périodiques
-#     U_tot=np.zeros((N,N)) # initialisation de la matrice d'interraction
-#     for i in range(N): # boucle sur le nombre de particules
-#         for j in range(N): 
-#             if i!=j : # on ne calcule pas le potentiel d'interaction entre une particule et elle même, U_tot aura tous ses coeffs diagonaux nuls
-#                 # distance réelle entre la particule i et la particule j
-#                 delta_x=r[i,0]-r[j,0]
-#                 delta_y=r[i,1]-r[j,1]
-#                 # distance avec les conditions périodiques entre la particule i et la particule j
-#                 distances_possibles_x=np.array(np.abs([delta_x -Lx, delta_x, delta_x +Lx])) # on ne considère que les boites directement adjacentes à notre boite
-#                 distances_possibles_y=np.array(np.abs([delta_y -Ly, delta_y, delta_y +Ly]))
-#                 d_x_périodique=np.min(distances_possibles_x, axis=0) # distance selon x périodique (voir brouillon pour le calcul)
-#                 d_y_periodique=np.min(distances_possibles_y,axis=0) # distance selon y périodique
-#                 d_i_j=np.sqrt(d_x_périodique**2+d_y_periodique**2) # distance entre la particule i et la particules j en tenant compte des CL périodiques
-#                 if d_i_j < r_lim : # on limite la portée de l'interaction
-#                     u_i_j=Lennard_Jones(d_i_j)
-#                     U_tot[i][j]=u_i_j
-#     return U_tot
-
-# def energie_potentielle_totale(r):
-#     Ep=[]
-#     for t in range(Nb_iterations):
-#         r_t=r[t]
-#         matrice_energies_potentielles=energie_potentielle_par_particule(r_t)
-#         Ep.append(np.sum(matrice_energies_potentielles)/2) # l'énergie potentielle totale est la somme des énergies potentielles d'interaction entre chaque particule / 2 (on divise par 2 pour ne pas compter 2 fois la même interaction entre i et j et j et i)
-#     return np.array(Ep)
-
-# def energie_totale(r):
-#     return energie_cinetique_totale() + energie_potentielle_totale(r) # return un tableau de longueur Nb_iterations correspondant à l'énergie totale au temps t
-
-# # calcul des énergies
-# energie=energie_totale(r)
-# Ec = energie_cinetique_totale()
-# Ep = energie_potentielle_totale(r)
+ani.save(
+    "animation_particules.gif",
+    writer="pillow",
+    fps=100
+)
 
 
-# # plot des énergies
-# plt.figure()
-# plt.plot(time[:len(Ec)],Ec,label="énergie cinétique")
-# plt.plot(time[:len(Ep)],Ep,label="énergie potentielle")
-# plt.plot(time[:len(energie)],energie, label="energie totale")
-# plt.xlabel("temps")
-# plt.ylabel("energie")
-# plt.legend()
-# plt.grid()
-# plt.savefig("energie_au_cours_du_temps.png")
-# plt.show()
+"""
+CALCUL DE L'ENERGIE DU SYSTEME
+"""
 
-# # sauvegarde des énergies
-# data_Ec=np.column_stack((time[:len(Ec)],Ec))
-# data_Ep=np.column_stack((time[:len(Ep)],Ep))
-# data_E=np.column_stack((time[:len(energie)],energie))
+V_x=data_array[:,:,3] # vitesses selon x
+V_y=data_array[:,:,4] # vitesses selon y
+x=data_array[:,:,1] # positions selon x
+y=data_array[:,:,2] # positions selon y
 
-# np.savetxt("Energie_cinetique.txt",data_Ec,delimiter=",",header="Temps,Ec")
-# np.savetxt("Energie_potentielle.txt",data_Ep,delimiter=",",header="Temps,Ep")
-# np.savetxt("Energie_totale.txt",data_E,delimiter=",",header="Temps,E")
+
+def energie_cinetique_totale():
+    Ec=[] 
+    for t in range(Nb_iterations) : # boucle sur le temps
+        Ec_t=0 
+        for i in range(N): # boucle sur le nombre de particules
+            V_carre=V_x[t][i]**2 + V_y[t][i]**2 # vitesse au carré de la particule i au temps t
+            Ec_t+=0.5*m*V_carre
+        Ec.append(Ec_t)
+    return np.array(Ec)
+
+def Lennard_Jones(r):
+    u=4*epsilon*((R/r)**12 - (R/r)**6)
+    return u
+
+def energie_potentielle_par_particule(r): # r correspond au n-uplet contenant toutes les positions des particules / on tient compte des CL périodiques
+    U_tot=np.zeros((N,N)) # initialisation de la matrice d'interraction
+    for i in range(N): # boucle sur le nombre de particules
+        for j in range(N): 
+            if i!=j : # on ne calcule pas le potentiel d'interaction entre une particule et elle même, U_tot aura tous ses coeffs diagonaux nuls
+                # distance réelle entre la particule i et la particule j
+                delta_x=r[i,0]-r[j,0]
+                delta_y=r[i,1]-r[j,1]
+                # distance avec les conditions périodiques entre la particule i et la particule j
+                distances_possibles_x=np.array(np.abs([delta_x -Lx, delta_x, delta_x +Lx])) # on ne considère que les boites directement adjacentes à notre boite
+                distances_possibles_y=np.array(np.abs([delta_y -Ly, delta_y, delta_y +Ly]))
+                d_x_périodique=np.min(distances_possibles_x, axis=0) # distance selon x périodique (voir brouillon pour le calcul)
+                d_y_periodique=np.min(distances_possibles_y,axis=0) # distance selon y périodique
+                d_i_j=np.sqrt(d_x_périodique**2+d_y_periodique**2) # distance entre la particule i et la particules j en tenant compte des CL périodiques
+                if d_i_j < r_lim : # on limite la portée de l'interaction
+                    u_i_j=Lennard_Jones(d_i_j)
+                    U_tot[i][j]=u_i_j
+    return U_tot
+
+def energie_potentielle_totale(r):
+    Ep=[]
+    for t in range(Nb_iterations):
+        r_t=r[t]
+        matrice_energies_potentielles=energie_potentielle_par_particule(r_t)
+        Ep.append(np.sum(matrice_energies_potentielles)/2) # l'énergie potentielle totale est la somme des énergies potentielles d'interaction entre chaque particule / 2 (on divise par 2 pour ne pas compter 2 fois la même interaction entre i et j et j et i)
+    return np.array(Ep)
+
+def energie_totale(r):
+    return energie_cinetique_totale() + energie_potentielle_totale(r) # return un tableau de longueur Nb_iterations correspondant à l'énergie totale au temps t
+
+# calcul des énergies
+energie=energie_totale(r)
+Ec = energie_cinetique_totale()
+Ep = energie_potentielle_totale(r)
+
+
+# plot des énergies
+plt.figure()
+plt.plot(time[:len(Ec)],Ec,label="énergie cinétique")
+plt.plot(time[:len(Ep)],Ep,label="énergie potentielle")
+plt.plot(time[:len(energie)],energie, label="energie totale")
+plt.xlabel("temps")
+plt.ylabel("energie")
+plt.legend()
+plt.grid()
+plt.savefig("energie_au_cours_du_temps.png")
+plt.show()
+
+# sauvegarde des énergies
+data_Ec=np.column_stack((time[:len(Ec)],Ec))
+data_Ep=np.column_stack((time[:len(Ep)],Ep))
+data_E=np.column_stack((time[:len(energie)],energie))
+
+np.savetxt("Energie_cinetique.txt",data_Ec,delimiter=",",header="Temps,Ec")
+np.savetxt("Energie_potentielle.txt",data_Ep,delimiter=",",header="Temps,Ep")
+np.savetxt("Energie_totale.txt",data_E,delimiter=",",header="Temps,E")
 
 """
 CALCUL DE LA PRESSION DU SYSTEME
 """
 
+def Pression(x,y,V_x,V_y,pas):
+    delta_t=pas*dt # pas de temps pour la pression
+    x0=Lx/2
+    y0=Ly/2
+    nb_fenetres=Nb_iterations//pas
+    P=np.zeros(nb_fenetres) # initialisation du tableau des pressions
+    Px_array=np.zeros(nb_fenetres)
+    Py_array=np.zeros(nb_fenetres)
+    time_pression=np.arange(len(P))*pas*dt
+    for k in range(nb_fenetres): # boucle sur les fenêtres
+        px=0 # initialisation des quantités de mouvement
+        py=0
+        debut_fenetre=k*pas
+        for j in range(debut_fenetre, debut_fenetre + pas):
+            for n in range(N): # boucle sur les particules
+                if ((x[j,n]<x0 and x[j+1,n]>=x0) or (x[j,n]>x0 and x[j+1,n]<=x0)): # si la particule traverse la ligne verticale
+                    px += m*abs(V_x[j,n])
+                if ((y[j,n]<y0 and y[j+1,n]>=y0) or (y[j,n]>y0 and y[j+1,n]<=y0)): # si la particule traverse la ligne horizontale
+                    py +=m*abs(V_y[j,n])
+        Px_array[k]=px/(Ly*delta_t) # pression = flux de quantité de mouvement par unité de longueur
+        Py_array[k]=py/(Lx*delta_t)
+        P[k]=(Px_array[k]+Py_array[k])/2
+    return time_pression, P
 
+time_pression, P = Pression(x,y,V_x,V_y,pas=10)
+data_pression=np.column_stack((time_pression,P))
+np.savetxt("Pression.txt",data_pression, delimiter=",", header="Time, Pression")
+
+plt.figure()
+plt.plot(time_pression,P,'o')
+plt.xlabel("temps")
+plt.ylabel("Pression")
+plt.grid()
+plt.savefig("pression.png")
+plt.show()
 
 """
 DETERMINATION DE L'EQUILIBRE DU SYSTEME
@@ -323,7 +359,7 @@ distr_V_th_eq=distribution_Malwell_Boltzmann_norme_vitesse_2d(V_th)
 # plot avec V prises moyennees après l'équilibre
 
 plt.figure()
-plt.bar(centres_x,hist_moy_x,label="simulation (moyenne temporelle)",color="blue")
+plt.bar(centres_x,hist_moy_x,width=centres_x[1]-centres_x[0],label="simulation (moyenne temporelle)",color="blue")
 plt.plot(Vx_th_eq,distr_Vx_th_eq,label="théorie",color="red")
 plt.title("distribution moyenne des vitesses selon x")
 plt.xlabel("vitesse")
@@ -333,7 +369,7 @@ plt.savefig("distribution_Vx_eq.png")
 plt.show()
 
 plt.figure()
-plt.bar(centres_y,hist_moy_y,label="simulation (moyenne temporelle)",color="blue")
+plt.bar(centres_y,hist_moy_y,width=centres_y[1]-centres_y[0],label="simulation (moyenne temporelle)",color="blue")
 plt.plot(Vy_th_eq,distr_Vy_th_eq,label="théorie",color="red")
 plt.title("distribution moyenne des vitesses selon y")
 plt.xlabel("vitesse")
@@ -343,7 +379,7 @@ plt.savefig("distribution_Vy_eq.png")
 plt.show()
 
 plt.figure()
-plt.bar(centres_V,hist_moy_V,label="simulation (moyenne temporelle)",color="blue")
+plt.bar(centres_V,hist_moy_V,width=centres_V[1]-centres_V[0],label="simulation (moyenne temporelle)",color="blue")
 plt.plot(V_th,distr_V_th_eq,label="théorie",color="red")
 plt.title("distribution moyenne norme de la vitesse")
 plt.xlabel("vitesse")
