@@ -14,17 +14,17 @@ import matplotlib.pyplot as plt
 PARAMETRES
 """
 
-N=100 # nombre de particules
+N=150 # nombre de particules
 R=1 # diamètre particule (unité naturelle)
 epsilon = 1 # énergie (unité naturelle)
 kb = 1 # constante de Boltzmann (unité naturelle)
 m=1 # masse des particules (unité naturelle)
 
 # temps :
-dt=0.00001 # intervalle de temps (unités naturelles)
+dt=0.001 # intervalle de temps (unités naturelles)
 Nb_iterations=10000 # nombre d'itérations dans le calcul de positions, vitesses, accélérations
 
-r_lim=10000 # portée maximale de l'interraction (à ajuster)
+r_lim=10 # portée maximale de l'interraction (à ajuster)
 
 """
 BOITE 2D : bords fixes (2 possibilités de conditions aux limites : périodique ou réflexion sur la surface)
@@ -33,9 +33,9 @@ BOITE 2D : bords fixes (2 possibilités de conditions aux limites : périodique 
 # 2D : boite de 10 par 10
 
 x_min=0
-x_max=44
+x_max=200
 y_min=0
-y_max=44
+y_max=200
 Lx=x_max - x_min
 Ly=y_max - y_min
 dx=0.01
@@ -131,9 +131,13 @@ def gradient_u_CL_périodiques(r1, r2):
 
     # calcul du gradient en tenant compte des CL périodiques
     norm_r=np.sqrt(d_x_periodique**2+d_y_periodique**2)
-    norm_grad = 4*epsilon*(-12*(R**12)/(norm_r**13)+6*(R**6)/(norm_r**7)) # dérivée par rapport à r du potentiel de Lennard-Jones
-    grad_x = norm_grad*d_x_periodique/norm_r
-    grad_y= norm_grad*d_y_periodique/norm_r
+    if 0<norm_r<=r_lim : # interaction que si la distance qui sépare les particules est inférieure à la portée de l'interaction
+        norm_grad = 4*epsilon*(-12*(R**12)/(norm_r**13)+6*(R**6)/(norm_r**7)) # dérivée par rapport à r du potentiel de Lennard-Jones
+        grad_x = norm_grad*d_x_periodique/norm_r
+        grad_y= norm_grad*d_y_periodique/norm_r
+    else :
+        grad_x=0
+        grad_y=0
 
     return np.array([grad_x, grad_y])
 
@@ -200,87 +204,100 @@ def calcul_positions_vitesses_accelerations(Nb_iterations,r_init,V_init,a_init):
     return data
 
 
+# """
+# CONDITIONS INITIALES
+# """
+
+# def distribution_uniforme_positions(N): # on veut tirer la position initiale des N particules selon une probabilité uniforme
+#     x=np.random.uniform(x_min,x_max,size=N)
+#     y=np.random.uniform(y_min,y_max,size=N)
+#     r=np.column_stack((x, y))
+#     return r
+
+# #T_init=300 # température initiale (en K)
+
+# def distribution_gaussienne_vitesses(N):
+#     # mu_init=np.sqrt(3*kb*T_init/m) # correspond à la vitesse quadratique moyenne (d'après la thermo, permet d'avoir un ordre d'idée)
+#     mu_init=0 # vitesse moyenne nulle
+#     sigma_init=1 # à réfléchir
+#     Vx=np.random.normal(mu_init,sigma_init,size=N)
+#     Vy=np.random.normal(mu_init,sigma_init,size=N)
+#     V=np.column_stack((Vx,Vy))
+#     return V
+
+# def distribution_uniforme_vitesses(N,Vmin,Vmax):
+#     Vx=np.random.uniform(Vmin,Vmax,size=N)
+#     Vy=np.random.uniform(Vmin,Vmax,size=N)
+#     V=np.column_stack((Vx, Vy))
+#     return V
+
+# def distribution_facile_vitesses(N,V1,V2,V3,V4):
+#     Vx=np.zeros(N)
+#     Vy=np.zeros(N)
+#     Vx[:int(N/2)]=V1
+#     Vx[int(N/2):]=V2
+#     Vy[:int(N/2)]=V3
+#     Vy[int(N/2):]=V4
+#     V=np.column_stack((Vx,Vy))
+#     return V
+
+# r_init = distribution_uniforme_positions(N) # positions initiales
+# #V_init = distribution_gaussienne_vitesses(N) # vitesses initiales
+# #V_init = distribution_uniforme_vitesses(N,-5,5) 
+# a_init=(-1/m)*somme_des_gradients(r_init) # accélération initiale
+# V_init=distribution_facile_vitesses(N,3,-2,2,-3)
+# #a_init = np.zeros_like(r_init) # accélérations initiales (je ne sais pas)
+
+# # # plot des positions initiales dans la boite
+# # x_init=r_init[:,0]
+# # y_init=r_init[:,1]
+
+# # plt.figure()
+# # plt.scatter(x_init,y_init,color='red',s=50)
+# # plt.xlabel("x")
+# # plt.ylabel("y")
+# # plt.xlim(x_min,x_max)
+# # plt.ylim(y_min,y_max)
+# # plt.axis('scaled')
+# # plt.title("positions initiales")
+# # plt.savefig("positions_initiales_100_particules.png")
+# # plt.show()
+
+# # # histogramme des vitesses initiales
+# # Vx_init=V_init[:,0]
+# # Vy_init=V_init[:,1]
+# # V_init_norm=np.sqrt(Vx_init**2+Vy_init**2)
+
+# # plt.figure()
+# # plt.hist(V_init_norm,bins=15)
+# # plt.title("Distribution de la norme des vitesses initiales")
+# # plt.savefig("distribution_norme_vitesses_initiales.png")
+# # plt.show()
+
+# # plt.figure()
+# # plt.hist(Vx_init,bins=15)
+# # plt.title("Distribution des vitesses initiales selon x")
+# # plt.savefig("distribution_vitesses_initiales_selon_x.png")
+# # plt.show()
+
+# # plt.figure()
+# # plt.hist(Vy_init,bins=15)
+# # plt.title("Distribution des vitesses initiales selon y")
+# # plt.savefig("distribution_vitesses_initiales_selon_y.png")
+# # plt.show()
+
 """
-CONDITIONS INITIALES
+SIMULATIONS EN CASCADE : CONDITIONS INITIALES = ETAT FINAL DE LA DERNIERE SIMULATION (plusieurs simulations successives : tant que l'equilibre n'est pas encore atteint on recommence la simulation)
 """
+# lecture des données et mise en forme 
+data=np.loadtxt("calcul_r_v_a_analytique.txt",skiprows=1, delimiter=",", dtype=float)
+data_array = data.reshape(Nb_iterations + 1, N, 7) # même forme de tableau que celui issu de la fonction calcul_positions_vitesses_accelerations : pour chaque temps et pour chaque particule : [temps, X, Y, Vx, Vy, Ax, Ay]
 
-def distribution_uniforme_positions(N): # on veut tirer la position initiale des N particules selon une probabilité uniforme
-    x=np.random.uniform(x_min,x_max,size=N)
-    y=np.random.uniform(y_min,y_max,size=N)
-    r=np.column_stack((x, y))
-    return r
+# conditions initiales nouvelles simulation = conditions finales ancienne simulation
 
-T_init=300 # température initiale (en K)
-
-def distribution_gaussienne_vitesses(N):
-    # mu_init=np.sqrt(3*kb*T_init/m) # correspond à la vitesse quadratique moyenne (d'après la thermo, permet d'avoir un ordre d'idée)
-    mu_init=0 # vitesse moyenne nulle
-    sigma_init=1 # à réfléchir
-    Vx=np.random.normal(mu_init,sigma_init,size=N)
-    Vy=np.random.normal(mu_init,sigma_init,size=N)
-    V=np.column_stack((Vx,Vy))
-    return V
-
-def distribution_uniforme_vitesses(N,Vmin,Vmax):
-    Vx=np.random.uniform(Vmin,Vmax,size=N)
-    Vy=np.random.uniform(Vmin,Vmax,size=N)
-    V=np.column_stack((Vx, Vy))
-    return V
-
-def distribution_facile_vitesses(N,V1,V2,V3,V4):
-    Vx=np.zeros(N)
-    Vy=np.zeros(N)
-    Vx[:int(N/2)]=V1
-    Vx[int(N/2):]=V2
-    Vy[:int(N/2)]=V3
-    Vy[int(N/2):]=V4
-    V=np.column_stack((Vx,Vy))
-    return V
-
-r_init = distribution_uniforme_positions(N) # positions initiales
-#V_init = distribution_gaussienne_vitesses(N) # vitesses initiales
-#V_init = distribution_uniforme_vitesses(N,-5,5) 
-a_init=(-1/m)*somme_des_gradients(r_init) # accélération initiale
-V_init=distribution_facile_vitesses(N,3,-2,2,-3)
-#a_init = np.zeros_like(r_init) # accélérations initiales (je ne sais pas)
-
-# # plot des positions initiales dans la boite
-# x_init=r_init[:,0]
-# y_init=r_init[:,1]
-
-# plt.figure()
-# plt.scatter(x_init,y_init,color='red',s=50)
-# plt.xlabel("x")
-# plt.ylabel("y")
-# plt.xlim(x_min,x_max)
-# plt.ylim(y_min,y_max)
-# plt.axis('scaled')
-# plt.title("positions initiales")
-# plt.savefig("positions_initiales_100_particules.png")
-# plt.show()
-
-# # histogramme des vitesses initiales
-# Vx_init=V_init[:,0]
-# Vy_init=V_init[:,1]
-# V_init_norm=np.sqrt(Vx_init**2+Vy_init**2)
-
-# plt.figure()
-# plt.hist(V_init_norm,bins=15)
-# plt.title("Distribution de la norme des vitesses initiales")
-# plt.savefig("distribution_norme_vitesses_initiales.png")
-# plt.show()
-
-# plt.figure()
-# plt.hist(Vx_init,bins=15)
-# plt.title("Distribution des vitesses initiales selon x")
-# plt.savefig("distribution_vitesses_initiales_selon_x.png")
-# plt.show()
-
-# plt.figure()
-# plt.hist(Vy_init,bins=15)
-# plt.title("Distribution des vitesses initiales selon y")
-# plt.savefig("distribution_vitesses_initiales_selon_y.png")
-# plt.show()
+r_init=data_array[-1,:,1:3]
+V_init=data_array[-1,:,3:5]
+a_init=data_array[-1,:,5:7]
 
 
 """
@@ -288,10 +305,10 @@ SAUVEGARDE DES DONNES DE POSITION, VITESSE, ACCELERATION
 """
 
 
-calcul_r_v_a_analytique=calcul_positions_vitesses_accelerations(Nb_iterations,r_init,V_init,a_init)
-calcul_r_v_a_analytique = calcul_r_v_a_analytique.reshape(-1, 7) # afin de pouvoir convertir le fichier de données au format txt je change le format du tableau : on aura sept colonnes comprennant : temps, x, y, V_x, V_y, a_x, a_y (le -1 indique que python calcule automatiquement le nombre de lignes necessaires)
+calcul_r_v_a_analytique_new=calcul_positions_vitesses_accelerations(Nb_iterations,r_init,V_init,a_init)
+calcul_r_v_a_analytique_new = calcul_r_v_a_analytique_new.reshape(-1, 7) # afin de pouvoir convertir le fichier de données au format txt je change le format du tableau : on aura sept colonnes comprennant : temps, x, y, V_x, V_y, a_x, a_y (le -1 indique que python calcule automatiquement le nombre de lignes necessaires)
 
-np.savetxt("calcul_r_v_a_analytique.txt",calcul_r_v_a_analytique, delimiter=",",header="Temps,X,Y,Vx,Vy,Ax,Ay")
+np.savetxt("calcul_r_v_a_analytique_new.txt",calcul_r_v_a_analytique_new, delimiter=",",header="Temps,X,Y,Vx,Vy,Ax,Ay")
 
-print(calcul_r_v_a_analytique.shape)
-print(calcul_r_v_a_analytique.size)
+print(calcul_r_v_a_analytique_new.shape)
+print(calcul_r_v_a_analytique_new.size)
