@@ -4,7 +4,6 @@ IMPORT DES BIBLIOTHEQUES
 
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
 """
 PARAMETRES
@@ -132,13 +131,13 @@ a=data_array[:,:,5:7]
 # plt.show()
 
 
-# # #Sauvegarde
+# #Sauvegarde
 
-# # ani.save(
-# #     "animation_particules.gif",
-# #     writer="pillow",
-# #     fps=100
-# # )
+# ani.save(
+#     "animation_particules.gif",
+#     writer="pillow",
+#     fps=100
+# )
 
 
 """
@@ -255,6 +254,7 @@ y=data_array[:,:,2] # positions selon y
 
 # d_min=distance_min(r)
 # print("min_d_min",np.min(d_min))
+# print("mean_d_min",np.mean(d_min))
 
 # plt.figure()
 # plt.plot(time, d_min)
@@ -383,59 +383,62 @@ def histogrammes_moyens_equilibre(debut_equilibre, V_x, V_y):
 
 debut_equilibre=int(Nb_iterations*0.9)
 T_eq=9.760980781177727295*(10**2)/N
-centres_x,centres_y,centres_V, hist_moy_x, hist_moy_y, hist_moy_V=histogrammes_moyens_equilibre(debut_equilibre,V_x,V_y)
-
-# distributions théoriques
-Vx_min_eq=np.min(V_x[debut_equilibre])
-Vx_max_eq=np.max(V_x[debut_equilibre])
-Vx_th_eq=np.arange(Vx_min_eq,Vx_max_eq,(Vx_max_eq-Vx_min_eq)/100)
-distr_Vx_th_eq=distribution_Maxwell_Boltzmann_direction_i(Vx_th_eq)
-
-Vy_min_eq=np.min(V_y[debut_equilibre])
-Vy_max_eq=np.max(V_y[debut_equilibre])
-Vy_th_eq=np.arange(Vy_min_eq,Vy_max_eq,(Vy_max_eq-Vy_min_eq)/100)
-distr_Vy_th_eq=distribution_Maxwell_Boltzmann_direction_i(Vy_th_eq)
-
-V_eq=np.sqrt(V_x[debut_equilibre]**2 + V_y[debut_equilibre]**2)
-V_th=np.arange(0, np.max(V_eq), np.max(V_eq)/100)
-distr_V_th_eq=distribution_Malwell_Boltzmann_norme_vitesse_2d(V_th)
-
-# plot avec V prises moyennees après l'équilibre
-
-plt.figure()
-plt.bar(centres_x,hist_moy_x,width=centres_x[1]-centres_x[0],label="simulation (moyenne temporelle)",color="blue")
-plt.plot(Vx_th_eq,distr_Vx_th_eq,label="théorie",color="red")
-plt.title("distribution moyenne des vitesses selon x")
-plt.xlabel("vitesse")
-plt.ylabel("densité de probabilité")
-plt.legend()
-plt.savefig("distribution_Vx_eq.png")
-plt.show()
-
-plt.figure()
-plt.bar(centres_y,hist_moy_y,width=centres_y[1]-centres_y[0],label="simulation (moyenne temporelle)",color="blue")
-plt.plot(Vy_th_eq,distr_Vy_th_eq,label="théorie",color="red")
-plt.title("distribution moyenne des vitesses selon y")
-plt.xlabel("vitesse")
-plt.ylabel("densité de probabilité")
-plt.legend()
-plt.savefig("distribution_Vy_eq.png")
-plt.show()
-
-plt.figure()
-plt.bar(centres_V,hist_moy_V,width=centres_V[1]-centres_V[0],label="simulation (moyenne temporelle)",color="blue")
-plt.plot(V_th,distr_V_th_eq,label="théorie",color="red")
-plt.title("distribution moyenne norme de la vitesse")
-plt.xlabel("vitesse")
-plt.ylabel("densité de probabilité")
-plt.legend()
-plt.savefig("distribution_V_eq.png")
-plt.show()
 
 
-# # plot avec V prises au début de l'équilibre
+# centres_x,centres_y,centres_V, hist_moy_x, hist_moy_y, hist_moy_V=histogrammes_moyens_equilibre(debut_equilibre,V_x,V_y)
+
+## distributions théoriques
+# Vx_min_eq=np.min(V_x[debut_equilibre])
+# Vx_max_eq=np.max(V_x[debut_equilibre])
+# Vx_th_eq=np.arange(Vx_min_eq,Vx_max_eq,(Vx_max_eq-Vx_min_eq)/100)
+# distr_Vx_th_eq=distribution_Maxwell_Boltzmann_direction_i(Vx_th_eq)
+
+# Vy_min_eq=np.min(V_y[debut_equilibre])
+# Vy_max_eq=np.max(V_y[debut_equilibre])
+# Vy_th_eq=np.arange(Vy_min_eq,Vy_max_eq,(Vy_max_eq-Vy_min_eq)/100)
+# distr_Vy_th_eq=distribution_Maxwell_Boltzmann_direction_i(Vy_th_eq)
+
+# V_eq=np.sqrt(V_x[debut_equilibre]**2 + V_y[debut_equilibre]**2)
+# V_th=np.arange(0, np.max(V_eq), np.max(V_eq)/100)
+# distr_V_th_eq=distribution_Malwell_Boltzmann_norme_vitesse_2d(V_th)
+
+# # plot avec V prises moyennees après l'équilibre
+
 # plt.figure()
-# plt.hist(V_x[debut_equilibre],bins=30,density=True, label="simulation") # normalisation avec density=True afin de pouvoir comparer la densité de proba théorique avec l'histogramme issu de la simulation
+# plt.bar(centres_x,hist_moy_x,width=centres_x[1]-centres_x[0],label="simulation (moyenne temporelle)",color="blue")
+# plt.plot(Vx_th_eq,distr_Vx_th_eq,label="théorie",color="red")
+# plt.title("distribution moyenne des vitesses selon x")
+# plt.xlabel("vitesse")
+# plt.ylabel("densité de probabilité")
+# plt.legend()
+# plt.savefig("distribution_Vx_eq.png")
+# plt.show()
+
+# plt.figure()
+# plt.bar(centres_y,hist_moy_y,width=centres_y[1]-centres_y[0],label="simulation (moyenne temporelle)",color="blue")
+# plt.plot(Vy_th_eq,distr_Vy_th_eq,label="théorie",color="red")
+# plt.title("distribution moyenne des vitesses selon y")
+# plt.xlabel("vitesse")
+# plt.ylabel("densité de probabilité")
+# plt.legend()
+# plt.savefig("distribution_Vy_eq.png")
+# plt.show()
+
+# plt.figure()
+# plt.bar(centres_V,hist_moy_V,width=centres_V[1]-centres_V[0],label="simulation (moyenne temporelle)",color="blue")
+# plt.plot(V_th,distr_V_th_eq,label="théorie",color="red")
+# plt.title("distribution moyenne norme de la vitesse")
+# plt.xlabel("vitesse")
+# plt.ylabel("densité de probabilité")
+# plt.legend()
+# plt.savefig("distribution_V_eq.png")
+# plt.show()
+
+
+# # plot avec V prises au début de l'équilibre (pas d'utilisation de l'hypothèse ergodique)
+
+# plt.figure()
+# plt.hist(V_x[debut_equilibre],bins=20,density=True, label="simulation") # normalisation avec density=True afin de pouvoir comparer la densité de proba théorique avec l'histogramme issu de la simulation
 # plt.plot(Vx_th_eq,distr_Vx_th_eq,label="théorie")
 # plt.title("Distribution des vitesses à l'équilibre selon x")
 # plt.xlabel("vitesse")
@@ -445,7 +448,7 @@ plt.show()
 # plt.show()
 
 # plt.figure()
-# plt.hist(V_y[debut_equilibre],bins=30,density=True,label="simulation")
+# plt.hist(V_y[debut_equilibre],bins=20,density=True,label="simulation")
 # plt.plot(Vy_th_eq,distr_Vy_th_eq,label="théorie")
 # plt.title("Distribution des vitesses à l'équilibre selon y")
 # plt.xlabel("vitesse")
@@ -455,7 +458,7 @@ plt.show()
 # plt.show()
 
 # plt.figure()
-# plt.hist(V_eq[debut_equilibre],bins=30,density=True,label="simulation")
+# plt.hist(V_eq,bins=20,density=True,label="simulation")
 # plt.plot(V_th,distr_V_th_eq,label="théorie")
 # plt.title("Distribution des normes de vitesse à l'équilibre")
 # plt.xlabel("vitesse")
