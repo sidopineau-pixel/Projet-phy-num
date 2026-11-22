@@ -20,18 +20,18 @@ import matplotlib.pyplot as plt
 PARAMETRES
 """
 
-N=100 # nombre de particules
+N=150 # nombre de particules
 R=1 # diamètre particule (unité naturelle)
 epsilon = 1 # énergie (unité naturelle)
 kb = 1 # constante de Boltzmann (unité naturelle)
 m=1 # masse des particules (unité naturelle)
 
 # temps :
-dt=0.00001 # intervalle de temps (unités naturelles)
-Nb_iterations=1000 # nombre d'itérations dans le calcul de positions, vitesses, accélérations
+dt=0.001 # intervalle de temps (unités naturelles)
+Nb_iterations=10000 # nombre d'itérations dans le calcul de positions, vitesses, accélérations
 
-r_lim=10000 # portée maximale de l'interraction (à ajuster)
-g=0.02 # accélération de la pesanteur
+r_lim=10 # portée maximale de l'interraction (à ajuster)
+g=0.1 # accélération de la pesanteur
 
 """
 BOITE 2D : bords fixes (2 possibilités de conditions aux limites : réflexion sur les parois (on ne peut pas mettre de CL périodique pour étudier la gravité...)
@@ -40,9 +40,9 @@ BOITE 2D : bords fixes (2 possibilités de conditions aux limites : réflexion s
 # 2D : boite de 10 par 10
 
 x_min=0
-x_max=44
+x_max=200
 y_min=0
-y_max=44
+y_max=200
 Lx=x_max - x_min
 Ly=y_max - y_min
 dx=0.01
@@ -107,9 +107,13 @@ def gradient_u_CL_périodiques_x(r1, r2):
     norm_r = np.sqrt(d_x_periodique**2 + d_y**2)
 
     # calcul du gradient en tenant compte des CL périodiques que selon x
-    norm_grad = 4*epsilon*(-12*(R**12)/(norm_r**13)+ 6*(R**6)/(norm_r**7))
-    grad_x = norm_grad*d_x_periodique/norm_r
-    grad_y = norm_grad*d_y/norm_r
+    if 0<norm_r<r_lim :
+        norm_grad = 4*epsilon*(-12*(R**12)/(norm_r**13)+ 6*(R**6)/(norm_r**7))
+        grad_x = norm_grad*d_x_periodique/norm_r
+        grad_y = norm_grad*d_y/norm_r
+    else :
+        grad_x=0
+        grad_y=0
 
     return np.array([grad_x, grad_y])
 
@@ -128,52 +132,6 @@ def somme_des_gradients(r): # r est le n-uplet contenant les positions de toutes
 """
 ALGORITHME DE VERLET POUR LE CALCUL DES VITESSES
 """
-
-
-def calcul_positions_vitesses_accelerations(Nb_iterations,r_init,V_init,a_init):
-
-    # initialisation du tableau de donné (méthode vectorisée bien plus rapide, l'autre était beaucoup trop lente)
-    data=np.zeros((Nb_iterations + 1,N,7),dtype=float) # à chaque particule on associe 7 données : [temps, X, Y, Vx, Vy, Ax, Ay]
-
-    # conditions initiales
-    data[0,:,0]=0
-    data[0,:,1:3]=r_init
-    data[0,:,3:5]=V_init
-    data[0,:,5:7]=a_init
-
-    r=np.array(r_init,dtype=float)
-    V=np.array(V_init,dtype=float)
-    a=np.array(a_init,dtype=float)
-
-    # itération :
-    for i in range(Nb_iterations) : # boucle sur le temps
-
-        # calcul des nouvelles positions avec conditions aux limites périodiques
-        r_new=r+V*dt+0.5*a*(dt**2)
-        
-        # calcul des nouvelles vitesses avec condition de réflexion :
-        V_new=V+0.5*a*dt
-
-        # calcul de l'accélération en tenant compte de la gravité
-        a_new[:,0]=(-1/m)*somme_des_gradients(r_new)[:,0]
-        a_new[:,1]=(-1/m)*somme_des_gradients(r_new)[:,1]-g
-        
-        # calcul de la nouvelle vitesse
-        V_new=V_new+0.5*a_new*dt
-
-        # stockage des données
-        data[i+1,:,0]=dt*(i+1)
-        data[i+1,:,1:3]=r_new
-        data[i+1,:,3:5]=V_new
-        data[i+1,:,5:7]=a_new
-
-        # réinitialisation des positions, vitesses et accélérations pour le tour suivant
-        r=r_new
-        V=V_new
-        a=a_new
-
-    return data
-
 
 def calcul_positions_vitesses_accelerations(Nb_iterations, r_init, V_init, a_init): # conditions périodiques que selon x / réflexion selon y
 
@@ -228,7 +186,7 @@ def calcul_positions_vitesses_accelerations(Nb_iterations, r_init, V_init, a_ini
         data[i+1,:,3:5]=V_new
         data[i+1,:,5:7]=a_new
 
-        # 8. Réinitialisation
+        # réinitialisation
         r=r_new
         V=V_new
         a=a_new
@@ -236,34 +194,33 @@ def calcul_positions_vitesses_accelerations(Nb_iterations, r_init, V_init, a_ini
     return data
 
 
-"""
-CONDITIONS INITIALES
-"""
+# """
+# CONDITIONS INITIALES
+# """
+
+# T_init=1 # température initiale
 
 
-def distribution_uniforme_positions(N): # on veut tirer la position initiale des N particules selon une probabilité uniforme
-    x=np.random.uniform(x_min,x_max,size=N)
-    y=np.random.uniform(y_min,y_max,size=N)
-    r=np.column_stack((x, y))
-    return r
+# def distribution_uniforme_positions(N): # on veut tirer la position initiale des N particules selon une probabilité uniforme
+#     x=np.random.uniform(x_min,x_max,size=N)
+#     y=np.random.uniform(y_min,y_max,size=N)
+#     r=np.column_stack((x, y))
+#     return r
 
 
-def distribution_gaussienne_vitesses(N):
-    # mu_init=np.sqrt(3*kb*T_init/m) # correspond à la vitesse quadratique moyenne (d'après la thermo, permet d'avoir un ordre d'idée)
-    mu_init=0 # vitesse moyenne nulle
-    sigma_init=1 # à réfléchir
-    Vx=np.random.normal(mu_init,sigma_init,size=N)
-    Vy=np.random.normal(mu_init,sigma_init,size=N)
-    V=np.column_stack((Vx,Vy))
-    return V
-
-#def temperature_initiale(r_init): # en phase gaz 
+# def distribution_gaussienne_vitesses(N):
+#     mu_init=0 
+#     sigma_init=np.sqrt(kb*T_init/m)
+#     Vx=np.random.normal(mu_init,sigma_init,size=N)
+#     Vy=np.random.normal(mu_init,sigma_init,size=N)
+#     V=np.column_stack((Vx,Vy))
+#     return V
 
 
-r_init = distribution_uniforme_positions(N) # positions initiales
-V_init = distribution_gaussienne_vitesses(N) # vitesses initiales 
-a_init=(-1/m)*somme_des_gradients(r_init) # accélération initiale 
-a_init[:,1]+= -g  # accélération initiale selon y contient aussi l'accélération de la pesanteur
+# r_init = distribution_uniforme_positions(N) # positions initiales
+# V_init = distribution_gaussienne_vitesses(N) # vitesses initiales 
+# a_init=(-1/m)*somme_des_gradients(r_init) # accélération initiale 
+# a_init[:,1]+= -g  # accélération initiale selon y contient aussi l'accélération de la pesanteur
 
 
 # # plot des positions initiales dans la boite
@@ -306,13 +263,26 @@ a_init[:,1]+= -g  # accélération initiale selon y contient aussi l'accélérat
 
 
 """
+SIMULATIONS EN CASCADE : CONDITIONS INITIALES = ETAT FINAL DE LA DERNIERE SIMULATION (plusieurs simulations successives : tant que l'equilibre n'est pas encore atteint on recommence la simulation)
+"""
+# lecture des données et mise en forme 
+data=np.loadtxt("calcul_r_v_a_analytique_atmosphere.txt",skiprows=1, delimiter=",", dtype=float)
+data_array = data.reshape(Nb_iterations + 1, N, 7) # même forme de tableau que celui issu de la fonction calcul_positions_vitesses_accelerations : pour chaque temps et pour chaque particule : [temps, X, Y, Vx, Vy, Ax, Ay]
+
+# conditions initiales nouvelles simulation = conditions finales ancienne simulation
+
+r_init=data_array[-1,:,1:3]
+V_init=data_array[-1,:,3:5]
+a_init=data_array[-1,:,5:7]
+
+"""
 SAUVEGARDE DES DONNES DE POSITION, VITESSE, ACCELERATION
 """
 
 
-calcul_r_v_a_analytique_atmosphere=calcul_positions_vitesses_accelerations(Nb_iterations,r_init,V_init,a_init)
-calcul_r_v_a_analytique_atmosphere = calcul_r_v_a_analytique_atmosphere.reshape(-1, 7) # afin de pouvoir convertir le fichier de données au format txt je change le format du tableau : on aura sept colonnes comprennant : temps, x, y, V_x, V_y, a_x, a_y (le -1 indique que python calcule automatiquement le nombre de lignes necessaires)
+calcul_r_v_a_analytique_atmosphere_new=calcul_positions_vitesses_accelerations(Nb_iterations,r_init,V_init,a_init)
+calcul_r_v_a_analytique_atmosphere_new = calcul_r_v_a_analytique_atmosphere_new.reshape(-1, 7) # afin de pouvoir convertir le fichier de données au format txt je change le format du tableau : on aura sept colonnes comprennant : temps, x, y, V_x, V_y, a_x, a_y (le -1 indique que python calcule automatiquement le nombre de lignes necessaires)
 
-np.savetxt("calcul_r_v_a_analytique_atmosphere.txt",calcul_r_v_a_analytique_atmosphere, delimiter=",",header="Temps,X,Y,Vx,Vy,Ax,Ay")
+np.savetxt("calcul_r_v_a_analytique_atmosphere_new.txt",calcul_r_v_a_analytique_atmosphere_new, delimiter=",",header="Temps,X,Y,Vx,Vy,Ax,Ay")
 
 
