@@ -10,17 +10,18 @@ import matplotlib.pyplot as plt
 PARAMETRES
 """
 
-N=100 # nombre de particules
+N=150 # nombre de particules
 R=1 # diamètre particule (unité naturelle)
 epsilon = 1 # énergie (unité naturelle)
 kb = 1 # constante de Boltzmann (unité naturelle)
 m=1 # masse des particules (unité naturelle)
-dt=0.00001 # intervalle de temps (unités naturelles)
-Nb_iterations=1000
+dt=0.001 # intervalle de temps (unités naturelles)
+Nb_iterations=10000
 
-r_lim=10000 # portée maximale de l'interraction (à ajuster)
+r_lim=10 # portée maximale de l'interraction (à ajuster)
 
-g=0.02 # accélération de la pesanteur
+g=0.1 # accélération de la pesanteur
+T=1 # température
 
 
 """
@@ -30,9 +31,9 @@ BOITE 2D : bords fixes (2 possibilités de conditions aux limites : périodique 
 # 2D : boite de 10 par 10
 
 x_min=0
-x_max=44
+x_max=200
 y_min=0
-y_max=44
+y_max=200
 Lx=x_max - x_min
 Ly=y_max - y_min
 dx=0.01
@@ -117,18 +118,18 @@ plt.show()
 
 # Sauvegarde
 
-ani.save(
-    "animation_particules_atmosphere.gif",
-    writer="pillow",
-    fps=100
-)
+# ani.save(
+#     "animation_particules_atmosphere.gif",
+#     writer="pillow",
+#     fps=100
+# )
 
 
 """
 DENSITE DE PARTICULES EN FONCTION DE L'ALTITUDE
 """
 
-nb_tranches=10
+nb_tranches=40
 
 
 def calcul_densite_altitude(r):
@@ -151,22 +152,33 @@ def atmosphere_isotherme(y,T,rho_0):
     H_0=kb*T/(m*g)
     return rho_0*np.exp(-y/H_0)
 
+def calcul_rho_0(T):
+    H_0=kb*T/(m*g)
+    rho_0=N/(Lx*H_0*(1-np.exp(-Ly/H_0)))
+    return rho_0
 
 """
-PLOT a différents instants t
+COMPARAISON THEORIE / SIMULATION à l'équilibre
 """
 
-nb_de_plot=10
-pas_plot=int(Nb_iterations/nb_de_plot)
-temps_plot=[time[i] for i in range(0,Nb_iterations,pas_plot)]
+# simulation
+r_eq=r[-1] # position des particules à l'équilibre
+bords_tranches, densite_gaz_simulation = calcul_densite_altitude(r_eq)
+y_simulation=(bords_tranches[:-1] + bords_tranches[1:])/2
+
+# densité théorique
+T_eq=1
+y_th=np.linspace(y_min,y_max,1000)
+rho_0=calcul_rho_0(T_eq)
+densite_gaz_theorique=atmosphere_isotherme(y_th, T_eq, rho_0)
+
+# plot
 
 plt.figure()
-for t in temps_plot :
-    indice_temps=np.where(time==t)[0][0]
-    bords_tranches, densite = calcul_densite_altitude(r[indice_temps])
-    plt.stairs(densite,bords_tranches,orientation="vertical", label=f't={t}')
+plt.plot(y_th, densite_gaz_theorique, label="modèle théorique", color="red")
+plt.bar(y_simulation, densite_gaz_simulation, width=Ly/nb_tranches,align='center',label="simulation")
 plt.xlabel("altitude y")
 plt.ylabel("densité de particules")
 plt.legend()
-plt.title("densité de particules à plusieurs instants")
+plt.savefig("densite_gaz_atmosphere.png")
 plt.show()
